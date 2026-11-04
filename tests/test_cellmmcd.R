@@ -121,5 +121,15 @@ f16 <- cellmmcd(X15, tail = TRUE)
 res["tail_runs"] <- ok(sprintf("tail variant converges (iter %d), tau = %.2f, tr ratio %.3f", f16$iter, f16$tau, tr_ratio(f16$Sr, f16$Sc, S$Sr, S$Sc)),
                        f16$converged && f16$tau > 1 && abs(tr_ratio(f16$Sr, f16$Sc, S$Sr, S$Sc) - 1) < 0.15)
 
+## 17. (block 3) full-column safeguard: after it every column position has >= p fully kept columns and every
+## row position >= q fully kept rows among the kept observations; forced flags are never unflagged
+set.seed(17); W17 <- array(runif(p * q * n) > 0.35, c(p, q, n)); Wf17 <- array(runif(p * q * n) > 0.05, c(p, q, n))
+W17 <- W17 & Wf17; v17 <- runif(n) > 0.2
+sg <- cm_fullcol(W17, Wf17, v17); k17 <- which(v17)
+fullcols <- sapply(1:q, function(l) sum(colSums(!sg$W[, l, k17, drop = FALSE]) == 0))
+fullrows <- sapply(1:p, function(k) sum(colSums(matrix(!sg$W[k, , k17], q)) == 0))
+res["safeguard"] <- ok(sprintf("safeguard: %d cells unflagged, min full cols %d (need %d), rows %d (need %d)", sg$unflagged, min(fullcols), p, min(fullrows), q),
+                       all(fullcols >= p) && all(fullrows >= q) && !any(sg$W & !Wf17) && all(sg$W[, , !v17] == W17[, , !v17]))
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

@@ -114,6 +114,32 @@ cm_wstep <- function(Xc, Sr, Sc, W, Wfix, lambda, h, v = NULL) {
   W
 }
 
+## ---- 3a. Full-column safeguard (block 3) --------------------------------------------------
+# The objective is unbounded below when n - h >= n / max(p, q) (METHOD 4a): a singular Sigma^r fits one fully
+# kept column and the quota allows a flag in every other column. Conjectured remedy: for every l at least p
+# fully kept columns (i, l), and for every k at least q fully kept rows (i, k), among the kept observations.
+# This step restores the condition after a cell step by unflagging, per violating column (row), the kept
+# observations with the fewest flags in it (forced marginal flags are never unflagged; such observations are
+# skipped). It can increase F; the driver records how many cells were unflagged (fit$unflagged).
+cm_fullcol <- function(W, Wfix, v) {
+  p <- dim(W)[1]; q <- dim(W)[2]; keep <- which(v); nun <- 0
+  fix1 <- function(Wsl, Wfsl, need) {       # Wsl: cells x kept obs (logical kept); returns obs to unflag
+    nf <- colSums(!Wsl); forced <- colSums(!Wfsl) > 0
+    full <- sum(nf == 0); if (full >= need) return(integer(0))
+    el <- which(nf > 0 & !forced); el <- el[order(nf[el])]
+    el[seq_len(min(need - full, length(el)))]
+  }
+  for (l in 1:q) {
+    j <- fix1(matrix(W[, l, keep], p), matrix(Wfix[, l, keep], p), p)
+    for (i in keep[j]) { nun <- nun + sum(!W[, l, i]); W[, l, i] <- TRUE }
+  }
+  for (k in 1:p) {
+    j <- fix1(matrix(W[k, , keep], q), matrix(Wfix[k, , keep], q), q)
+    for (i in keep[j]) { nun <- nun + sum(!W[k, , i]); W[k, , i] <- TRUE }
+  }
+  list(W = W, unflagged = nun)
+}
+
 ## ---- 3b. Observation step (block 2): exact minimisation over v given (Sigma, W) ------------
 # Trim the observations with the largest d_i - mu_i > 0, at most n - h_obs of them.
 # mu = -Inf: hard quota (classical trimmed likelihood, MMCD-type). Otherwise mu is a list
@@ -192,11 +218,12 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # casewise outliers by any standard; a shifted matrix keeps a few unflagged cells that look fine alone).
 # tail = TRUE (block 3): censored treatment of flagged cells in the parameter step (cm_pstep tau), with
 # calib switched off (the proxy fixed point is then at scale 1 with 1 - quant flagged).
+# safeguard = TRUE (block 3): full-column/row constraint restored after each cell step (cm_fullcol, 3a).
 # reweight = TRUE (block 3): after convergence, re-flag at the quant_rw quantile and refit with the flags
 # fixed (cm_reweight), the analogue of the reweighted MCD; the raw fit is returned as $raw.
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
-                     reweight = FALSE, quant_rw = 0.999, trace = FALSE) {
+                     reweight = FALSE, quant_rw = 0.999, safeguard = FALSE, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -214,11 +241,12 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
     mu <- list(Sr0 = st$Sr, Sc0 = st$Sc, quant = quant_obs, t_obs = t_obs)
   }
   Sr <- st$Sr; Sc <- st$Sc; W <- Wfix; v <- rep(TRUE, n)
-  obj <- numeric(0); prev <- Inf
+  obj <- numeric(0); prev <- Inf; unflagged <- 0
   for (it in 1:maxit) {
     if (trim_obs) v <- cm_vstep(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag)
     nv <- sum(v); h <- ceiling(alpha * nv)
     W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v)
+    if (safeguard) { sg <- cm_fullcol(W, Wfix, v); W <- sg$W; unflagged <- unflagged + sg$unflagged }
     f1 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
     ps <- cm_pstep(Xc, Sr, Sc, W, v, tau); Sr <- ps$Sr; Sc <- ps$Sc
     f2 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
@@ -231,7 +259,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   sc <- scale_ident(Sr / fac, Sc, "det")
   fit <- list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, Wfix = Wfix, v = v, obj = obj, iter = it,
               flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
-              start = st, converged = it < maxit, tau = tau)
+              start = st, converged = it < maxit, tau = tau, unflagged = unflagged)
   if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol) else fit
 }
 
