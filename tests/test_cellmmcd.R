@@ -221,5 +221,22 @@ res["check_pattern"] <- ok(sprintf("cm_check_pattern: one full column viol %d (c
   ca$viol, ca$c_full, cb$viol, cb$c_full, cb$d_full, cb$slack_T, cb$slack_U, cc26$viol, F26[6] - F26[1]),
   ca$viol == 1 && ca$c_full == 1 && cb$viol == 0 && cb$c_full >= 3 && cc26$viol == 0 && all(diff(F26) < 0) && F26[6] - F26[1] < -9)
 
+# 27 (block 9): Prop. D (dim N_i(a,b) on a stratum = r + s + comp - 1) against the nullity of G_0 and the explicit basis; Prop. C'
+# slope with the delta^2 mode (all cells kept, y = a_perp b_perp', nu = 4); cm_check_strata on the step-25 pattern (cross-violating,
+# Prop. A silent) and on a fully kept 3x3 sample (safe).
+set.seed(27); ok27 <- TRUE
+for (r in 1:8) { p <- sample(2:4, 1); q <- sample(2:4, 1); Wi <- matrix(runif(p * q) < 0.6, p, q); Wi[1, 1] <- TRUE
+  T <- sort(sample(p, sample(p, 1))); U <- if (r <= 2) integer() else sort(sample(q, sample(q, 1)))
+  a <- numeric(p); a[T] <- rnorm(length(T)); a <- a / sqrt(sum(a^2)); b <- numeric(q); if (length(U)) { b[U] <- rnorm(length(U)); b <- b / sqrt(sum(b^2)) }
+  P0 <- (if (length(U)) diag(q) - tcrossprod(b) else diag(q)) %x% (diag(p) - tcrossprod(a)); o <- which(Wi); G0 <- P0[o, o, drop = FALSE]
+  nul <- sum(eigen(G0, symmetric = TRUE, only.values = TRUE)$values < 1e-9); B <- cm_null_basis(Wi, T, U, a, b); d <- cm_null_dim(Wi, T, U)
+  ok27 <- ok27 && nul == d && (is.null(B) || (ncol(B) == d && max(abs(P0 %*% B)) < 1e-10 && qr(B)$rank == d && all(B[-o, ] == 0))) }
+a27 <- c(0.6, 0.8); b27 <- c(-0.8, 0.6); y27 <- as.vector(tcrossprod(c(-0.8, 0.6), c(0.6, 0.8)))
+Fo27 <- function(d) { S <- (diag(2) - (1 - d) * tcrossprod(b27)) %x% (diag(2) - (1 - d) * tcrossprod(a27)); logdet(S) + sum(y27 * solve(S, y27)) }
+sl27 <- (Fo27(1e-5) - Fo27(1e-3)) / log(1e-2)
+W25 <- array(FALSE, c(3, 3, 3)); W25[2:3, 1, 1] <- TRUE; W25[1, 2:3, 1] <- TRUE; W25[2:3, 1, 2] <- TRUE; W25[1, 2:3, 3] <- TRUE
+cs25 <- cm_check_strata(W25); csok <- cm_check_strata(array(TRUE, c(3, 3, 2)))
+res <- c(res, t27 = ok27 && abs(sl27 - 4) < 0.05 && cs25$viol_A == 0 && cs25$viol_cross == 1 && csok$viol == 0)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

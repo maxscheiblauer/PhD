@@ -462,3 +462,42 @@ cm_check_pattern <- function(W, v = NULL, max_enum = 16) {
   viol <- if (is.na(r$viol) || is.na(c$viol)) { if (isTRUE(r$viol == 1) || isTRUE(c$viol == 1)) 1 else NA } else as.numeric(r$viol == 1 || c$viol == 1)
   list(viol = viol, c_full = r$full, d_full = c$full, slack_T = r$slack, slack_U = c$slack, T = r$set, U = c$set)
 }
+
+# ---- block 9: cross strata of the existence problem (JOURNAL block 9, results 1-2) ---------------------------------
+cm_bip_comp <- function(M) {                   # M: logical |T| x |U|, TRUE = missing cell = edge of the bipartite graph on T u U
+  t <- nrow(M); u <- ncol(M); lab <- seq_len(t + u); E <- which(M, arr.ind = TRUE)   # returns component labels 1..comp
+  if (nrow(E) > 0) repeat { old <- lab
+    for (e in seq_len(nrow(E))) { k <- E[e, 1]; l <- t + E[e, 2]; m <- min(lab[k], lab[l]); lab[k] <- m; lab[l] <- m }
+    if (identical(old, lab)) break }
+  match(lab, unique(lab))
+}
+cm_null_dim <- function(Wi, T, U) {            # Prop. D: dim N_i(a,b) on the stratum (supp a, supp b) = (T, U); Wi logical p x q, TRUE = kept
+  if (length(U) == 0) return(sum(colSums(!Wi[T, , drop = FALSE]) == 0))              # one-factor stratum: columns kept on T
+  if (length(T) == 0) return(sum(rowSums(!Wi[, U, drop = FALSE]) == 0))
+  r <- sum(rowSums(!Wi[-T, U, drop = FALSE]) == 0); s <- sum(colSums(!Wi[T, -U, drop = FALSE]) == 0)
+  r + s + max(cm_bip_comp(!Wi[T, U, drop = FALSE])) - 1
+}
+cm_null_basis <- function(Wi, T, U, a, b) {    # basis of N_i(a,b) (columns, vec order, supported on the kept cells); NULL if N_i = 0
+  p <- nrow(Wi); q <- ncol(Wi); B <- NULL
+  if (length(T) > 0 && length(U) > 0) { lab <- cm_bip_comp(!Wi[T, U, drop = FALSE])
+    for (cc in seq_len(max(lab) - 1)) { Wm <- matrix(0, p, q)
+      for (k in seq_along(T)) for (l in seq_along(U)) if (Wi[T[k], U[l]]) Wm[T[k], U[l]] <- a[T[k]] * b[U[l]] * ((lab[k] == cc) - (lab[length(T) + l] == cc))
+      B <- cbind(B, as.vector(Wm)) } }
+  if (length(U) > 0) for (k in setdiff(seq_len(p), T)) if (all(Wi[k, U])) { Wm <- matrix(0, p, q); Wm[k, U] <- b[U]; B <- cbind(B, as.vector(Wm)) }
+  if (length(T) > 0) for (l in setdiff(seq_len(q), U)) if (all(Wi[T, l])) { Wm <- matrix(0, p, q); Wm[T, l] <- a[T]; B <- cbind(B, as.vector(Wm)) }
+  B
+}
+cm_check_strata <- function(W, v = NULL, max_enum = 5) {   # generic count criterion over all strata (T, U); one-factor strata via cm_check_pattern
+  if (is.list(W)) { v <- W$v; W <- W$W }
+  p <- dim(W)[1]; q <- dim(W)[2]; if (is.null(v)) v <- rep(TRUE, dim(W)[3]); Wv <- W[, , v, drop = FALSE]; nv <- dim(Wv)[3]
+  A <- cm_check_pattern(W, v)
+  if (p > max_enum || q > max_enum) return(list(viol = NA, viol_A = A$viol, viol_cross = NA, slack = NA, n_bad = NA, worst = NULL, A = A))
+  sets <- function(m) lapply(seq_len(2^m - 1), function(mask) which(bitwAnd(mask, 2^(0:(m - 1))) > 0))
+  worst <- NULL; slack <- Inf; nbad <- 0
+  for (T in sets(p)) for (U in sets(q)) { need <- length(T) + length(U) - 1; tot <- 0      # need = dim S_{T,U} + 1 constraints; the count stops at need (slack 0 = safe)
+    if ((length(T) == 1 && any(Wv[T, , ])) || (length(U) == 1 && any(Wv[, U, ]))) next   # a = e_k (b = e_l): every kept cell of row k (column l) has variance -> 0 on the path, F -> +inf (JOURNAL block 9, result 3)
+    for (i in seq_len(nv)) { tot <- tot + cm_null_dim(Wv[, , i], T, U); if (tot >= need) break }
+    sl <- if (tot == 0) Inf else tot - need; if (sl < 0) nbad <- nbad + 1
+    if (sl < slack) { slack <- sl; worst <- list(T = T, U = U, count = tot, need = need) } }
+  list(viol = as.numeric(nbad > 0 || isTRUE(A$viol == 1)), viol_A = A$viol, viol_cross = as.numeric(nbad > 0), slack = slack, n_bad = nbad, worst = worst, A = A)
+}

@@ -1,0 +1,34 @@
+cellMMCD step 26 (block 9): stratum criterion, Prop. C' slopes, Conjecture C'' on random patterns
+
+(a) Prop. D vs nullity of G_0 on 40 random patterns (p,q in 2..4, kept prob .6, random strata incl. one-factor):
+  agreement: 40 / 40
+
+(b) slopes of F along the (a,b)-path (predicted nu = sum_i dim N_i + #delta^2 modes):
+  2x2 cross (step 24): resid 9.7e-22, full support TRUE, slope 0.985, nu 1
+  3x3 step-25 pattern: resid 2.6e-26, full TRUE, slope 0.978, nu 1
+  2x2 all kept, y = a_perp b_perp' (delta^2 mode): slope 4.000, nu 4
+
+(c) Conjecture C'' on random 3x3 patterns (kept prob .55; 40 patterns per n):
+  n=2 pattern 13: worst stratum T={1} U={12} count 1 need 2; (a,b) resid 1.9e+00 full TRUE; slope -280934.249 (nu 1; control slope 0)
+  n=2: Prop. A fires 38, cross-only 1, silent 1
+  n=3: Prop. A fires 38, cross-only 0, silent 2
+  n=4: Prop. A fires 31, cross-only 0, silent 9
+
+(d) algorithm-produced patterns (default cellmmcd), worst stratum over all (T,U):
+  3x3 n=  6 eps=0.00 seed 2401: kept matrices 5, c_full 14, d_full 14, viol_A 0, viol_cross 0, min slack 0 (T={123} U={123} count 5 need 5), 0.0 s
+  3x3 n=  6 eps=0.00 seed 2402: kept matrices 5, c_full 13, d_full 13, viol_A 0, viol_cross 0, min slack 0 (T={12} U={123} count 4 need 4), 0.0 s
+  3x3 n=  6 eps=0.00 seed 2403: kept matrices 5, c_full 12, d_full 11, viol_A 0, viol_cross 0, min slack 0 (T={123} U={123} count 5 need 5), 0.0 s
+  4x4 n= 12 eps=0.00 seed 2601: kept matrices 12, c_full 24, d_full 29, viol_A 0, viol_cross 0, min slack 0 (T={123} U={1234} count 6 need 6), 0.0 s
+  4x4 n= 12 eps=0.00 seed 2602: kept matrices 12, c_full 35, d_full 36, viol_A 0, viol_cross 0, min slack 0 (T={1234} U={1234} count 7 need 7), 0.0 s
+  5x5 n= 15 eps=0.00 seed 2611: kept matrices 15, c_full 36, d_full 23, viol_A 0, viol_cross 0, min slack 0 (T={12} U={125} count 4 need 4), 0.0 s
+  5x5 n= 15 eps=0.00 seed 2612: kept matrices 15, c_full 65, d_full 67, viol_A 0, viol_cross 0, min slack 0 (T={1234} U={12345} count 8 need 8), 0.0 s
+  5x5 n=100 eps=0.20 seed 2621: kept matrices 97, c_full 158, d_full 158, viol_A 0, viol_cross 0, min slack 0 (T={12} U={12345} count 6 need 6), 0.0 s
+  5x5 n=100 eps=0.20 seed 2622: kept matrices 88, c_full 145, d_full 151, viol_A 0, viol_cross 0, min slack 0 (T={12} U={1234} count 5 need 5), 0.0 s
+
+(e) random-contamination regime: expected fully kept columns n q (1-eps)^p vs p (n = 100), and fitted 20x20 patterns:
+  p=q= 5: eps .05   386.9 | .10   295.2 | .20   163.8 | .25   118.7   (needs 0 or >= 5)
+  p=q= 8: eps .05   530.7 | .10   344.4 | .20   134.2 | .25    80.1   (needs 0 or >= 8)
+  p=q=20: eps .05   717.0 | .10   243.2 | .20    23.1 | .25     6.3   (needs 0 or >= 20)
+  p=q=40: eps .05   514.0 | .10    59.1 | .20     0.5 | .25     0.0   (needs 0 or >= 40)
+  20x20 n=100 eps=0.20: c_full 16, d_full 19 (expected before false flags 23.1); Prop. A fires on T=[p] or U=[q]: TRUE; KL 3.706; kept matrices 100; 15.3 s
+  20x20 n=100 eps=0.25: c_full 5, d_full 4 (expected before false flags 6.3); Prop. A fires on T=[p] or U=[q]: TRUE; KL 10.950; kept matrices 82; 27.3 s
