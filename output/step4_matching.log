@@ -1,0 +1,46 @@
+null device 
+          1 
+Step 4 (RJu part) done in 98.0 s
+ rule beta converged cycle J_nonmono iter n_distinct_a sKL_med_starts
+   R0 0.75      1.00  0.00     1.000 12.2          7.0       7.43e-02
+   R0 0.90      1.00  0.00     1.000 11.8          2.0       1.11e-15
+   R1 0.75      1.00  0.00     0.920 15.4          8.0       2.25e-01
+   R1 0.90      1.00  0.00     0.825 13.5          4.0       1.10e-01
+   R2 0.75      1.00  0.00     0.000 12.7          6.0       2.26e-01
+   R2 0.90      1.00  0.00     0.000 11.6          3.5       1.78e-15
+   R3 0.75      0.92  0.08     0.475 14.3          8.0       4.84e-01
+   R3 0.90      1.00  0.00     0.845 12.5          4.0       9.76e-02
+   RJ 0.75      1.00  0.00     0.000 18.1         10.0       5.55e-01
+   RJ 0.90      1.00  0.00     0.000 16.6         10.0       3.05e-01
+ sKL_max_roots
+      2.32e+00
+      2.32e+00
+      2.96e+00
+      2.96e+00
+      1.50e-15
+      1.50e-15
+      3.47e+00
+      3.47e+00
+      1.48e+00
+      1.48e+00
+
+Median shape-KL of best-J start, beta = 0.75 (Step 1 data):
+    cond
+rule clean   col   obs  wcol
+  R0 0.825 4.446 1.909 1.681
+  R1 1.359 2.596 1.508 1.330
+  R2 0.994 4.491 0.933 2.565
+  R3 1.360 3.860 1.379 2.029
+  RJ 1.244 1.662 1.232 1.263
+
+RJu status (10 starts x 5 datasets per row):
+            status
+             converged degenerate maxit
+  clean 0.75         5         45     0
+  clean 0.9         50          0     0
+  col 0.75          37         10     3
+  col 0.9           50          0     0
+  obs 0.75          11         39     0
+  obs 0.9           50          0     0
+  wcol 0.75         24         26     0
+  wcol 0.9          50          0     0

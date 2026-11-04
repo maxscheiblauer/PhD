@@ -1,0 +1,46 @@
+Step 2 done in 3.5 s
+   p q rule all_same_a same_path max_shape_prod max_shape_r max_shape_c
+1  3 5   R0          1         1       1.10e-15    1.73e-15    6.64e-16
+2  5 5   R0          1         1       1.68e-15    2.87e-15    1.39e-15
+3  3 5   R1          1         1       1.78e-15    8.97e-16    1.06e-15
+4  5 5   R1          1         1       2.73e-15    2.40e-15    1.19e-15
+5  3 5   R2          1         1       1.63e-15    1.27e-15    9.93e-16
+6  5 5   R2          1         1       2.04e-15    1.39e-15    8.68e-16
+7  3 5   R3          1         1       1.56e-15    1.26e-15    8.23e-16
+8  5 5   R3          1         1       2.56e-15    2.10e-15    1.06e-15
+9  3 5   RJ          1         1       1.27e-15    1.08e-15    7.65e-16
+10 5 5   RJ          1         1       2.54e-15    1.78e-15    9.01e-16
+
+Scale of product relative to reference (denom h, kappa on, det):
+    interaction(denom, kappa)
+rule h.FALSE n.FALSE h.TRUE n.TRUE
+  R0  1.0000  1.0000 1.0000 1.0000
+  R1  0.7054  0.5267 1.0000 0.7467
+  R2  0.8404  0.6387 1.0000 0.7600
+  R3  0.6528  0.4439 1.0000 0.6800
+  RJ  0.6315  0.6315 1.0000 1.0000
+
+Scale drift of Sigma^c with scale_id = 'none' (log det Sc at the end, p = 3, q = 5):
+   rule denom kappa iter logdet_Sc
+5    R0     h  TRUE   13     31.66
+6    R0     n  TRUE   13     50.19
+7    R0     h FALSE   13     62.38
+8    R0     n FALSE   13     80.90
+21   R1     h  TRUE   12      5.02
+22   R1     n  TRUE   12      4.59
+23   R1     h FALSE   12     12.43
+24   R1     n FALSE   12     12.01
+37   R3     h  TRUE   17     23.77
+38   R3     n  TRUE   17     14.59
+39   R3     h FALSE   17     27.20
+40   R3     n FALSE   17     18.02
+53   R2     h  TRUE   16     10.23
+54   R2     n  TRUE   16     10.23
+55   R2     h FALSE   16     -3.68
+56   R2     n FALSE   16     -3.68
+69   RJ     h  TRUE   23     -4.21
+70   RJ     n  TRUE   23     27.35
+71   RJ     h FALSE   23     -4.21
+72   RJ     n FALSE   23     27.35
+null device 
+          1 
