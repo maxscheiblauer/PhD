@@ -131,5 +131,18 @@ fullrows <- sapply(1:p, function(k) sum(colSums(matrix(!sg$W[k, , k17], q)) == 0
 res["safeguard"] <- ok(sprintf("safeguard: %d cells unflagged, min full cols %d (need %d), rows %d (need %d)", sg$unflagged, min(fullcols), p, min(fullrows), q),
                        all(fullcols >= p) && all(fullrows >= q) && !any(sg$W & !Wf17) && all(sg$W[, , !v17] == W17[, , !v17]))
 
+## 18. Shadow cell step (block 4): 10 % cells at 4 sd in every matrix; the block-3 iteration locks 25 % of the
+## matrices out, the shadow step lets them back in; F is monotone once the shadow phase (10 iterations) is over.
+set.seed(18); p18 <- 4; q18 <- 4; n18 <- 80; S18 <- true_sigma(p18, q18, "full")
+X18 <- rmatnorm(n18, Sr = S18$Sr, Sc = S18$Sc); sdc <- sqrt(outer(diag(S18$Sr), diag(S18$Sc)))
+b18 <- array(runif(p18 * q18 * n18) < 0.10, c(p18, q18, n18))
+X18[b18] <- X18[b18] + 4 * sdc[array(1:(p18 * q18), c(p18, q18, n18))[b18]] * sign(rnorm(sum(b18)))
+f18a <- cellmmcd(X18, shadow_it = 0, reweight = FALSE); f18b <- cellmmcd(X18, shadow_it = 10, reweight = FALSE)
+o18 <- f18b$obj[-(1:20)]
+res["shadow"] <- ok(sprintf("shadow step: trimmed %.2f (block 3: %.2f), KL %.3f (%.3f), F monotone after the shadow phase %s",
+                            f18b$trimmed, f18a$trimmed, kl_mn(f18b$Sr, f18b$Sc, S18$Sr, S18$Sc), kl_mn(f18a$Sr, f18a$Sc, S18$Sr, S18$Sc),
+                            all(diff(o18) <= 1e-8 * abs(o18[-1]))),
+                    f18b$trimmed < f18a$trimmed && f18b$trimmed <= 0.1 && all(diff(o18) <= 1e-8 * abs(o18[-1])))
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

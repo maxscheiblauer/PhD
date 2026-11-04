@@ -95,7 +95,11 @@ cm_delta1 <- function(Tf, Or, Oc, Mi, c, p) {
 # For each position (k,l): among the kept observations (v), flag those with the largest
 # Delta - lambda > 0, at most n_v - h of them (forced flags in !Wfix count against the budget).
 # h = ceiling(alpha * n_v) is passed as the quota for the kept observations.
-cm_wstep <- function(Xc, Sr, Sc, W, Wfix, lambda, h, v = NULL) {
+# shadow = TRUE (block 4): the cells of the *trimmed* observations are re-decided too, by the same rule
+# without a quota (sequential coordinate descent on their own d_i). They do not enter F through d_i, but the
+# observation step compares d_i - mu_i at the current W_i, so a matrix trimmed only because its cellwise
+# outliers were still unflagged (W = Wfix at the first observation step) can be re-admitted once they are.
+cm_wstep <- function(Xc, Sr, Sc, W, Wfix, lambda, h, v = NULL, shadow = FALSE) {
   p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
   if (is.null(v)) v <- rep(TRUE, n); nv <- sum(v)
   Or <- solve(Sr); Oc <- solve(Sc)
@@ -110,6 +114,15 @@ cm_wstep <- function(Xc, Sr, Sc, W, Wfix, lambda, h, v = NULL) {
     flag <- free[dec > 0]
     if (length(flag) > budget) flag <- flag[order(dec[dec > 0], decreasing = TRUE)[1:budget]]
     W[k, l, flag] <- FALSE
+  }
+  if (shadow && any(!v)) for (i in which(!v)) {
+    Tfi <- Or %*% Xc[, , i] %*% Oc; Wi <- W[, , i] & Wfix[, , i]
+    for (c in 1:(p * q)) {
+      k <- (c - 1) %% p + 1; l <- (c - 1) %/% p + 1
+      if (!Wfix[k, l, i]) next
+      Wi[k, l] <- cm_delta1(Tfi, Or, Oc, which(!Wi), c, p) - lambda[k, l] <= 0
+    }
+    W[, , i] <- Wi
   }
   W
 }
@@ -223,9 +236,14 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # re-flag at the quant_rw quantile and refit with the flags fixed (cm_reweight), the analogue of the
 # reweighted MCD; the raw fit is returned as $raw. reweight = FALSE gives the raw estimator, which is
 # asymptotically biased in shape at the Gaussian (JOURNAL, block 3).
+# shadow_it (block 4): during the first shadow_it iterations the cell step also re-decides the cells of the
+# trimmed observations (cm_wstep shadow), so that the observation step can re-admit a matrix whose cellwise
+# outliers are flagged by then. Those cells change F only through the trimmed charge mu_i(W_i), so F need
+# not be monotone during these iterations; afterwards the algorithm is the block-3 one (monotone), which
+# makes the convergence argument hold after at most shadow_it non-monotone iterations. 0 = off.
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
-                     reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, trace = FALSE) {
+                     reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, shadow_it = 10, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -247,7 +265,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   for (it in 1:maxit) {
     if (trim_obs) v <- cm_vstep(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag)
     nv <- sum(v); h <- ceiling(alpha * nv)
-    W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v)
+    W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v, shadow = trim_obs && it <= shadow_it)
     if (safeguard) { sg <- cm_fullcol(W, Wfix, v); W <- sg$W; unflagged <- unflagged + sg$unflagged }
     f1 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
     ps <- cm_pstep(Xc, Sr, Sc, W, v, tau); Sr <- ps$Sr; Sc <- ps$Sc
@@ -261,7 +279,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   sc <- scale_ident(Sr / fac, Sc, "det")
   fit <- list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, Wfix = Wfix, v = v, obj = obj, iter = it,
               flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
-              start = st, converged = it < maxit, tau = tau, unflagged = unflagged)
+              start = st, converged = it < maxit, tau = tau, unflagged = unflagged, shadow_it = shadow_it)
   if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol) else fit
 }
 
