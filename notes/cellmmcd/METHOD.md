@@ -1,6 +1,6 @@
 # cellMMCD: a cellwise matrix MCD for Kronecker covariances
 
-_Draft of 2026-11-04 (blocks 1–2). Derivations: `JOURNAL.md`. Code: `R/cellmmcd.R`. Tests: `tests/test_cellmmcd.R` (13). Experiments: `exp/cm_step1.R` (cellwise benchmark), `cm_step3_calib.R` (scale calibration), `cm_step3b/3c` (efficiency), `cm_step4_mixed.R` (casewise and mixed), `cm_step5_exist.R` (existence grid); logs in `output/`._
+_Draft of 2026-11-04 (blocks 1–3). Derivations: `JOURNAL.md`. Code: `R/cellmmcd.R`. Tests: `tests/test_cellmmcd.R` (13). Experiments: `exp/cm_step1.R` (cellwise benchmark), `cm_step3_calib.R` (scale calibration), `cm_step3b/3c` (efficiency), `cm_step4_mixed.R` (casewise and mixed), `cm_step5_exist.R` (existence grid), `cm_step6_bias.R` / `cm_step6b_biasformula.R` (bias of the raw estimator), `cm_step7_safeguard.R` (full-column safeguard, negative), `cm_step8_default.R` (choice of the default); logs in `output/`._
 
 ## 1. Setting
 $X_i \in \mathbb R^{p\times q}$, $i = 1,\dots,n$, $\operatorname{vec}(X_i) \sim \mathcal N(\operatorname{vec}M,\ \Sigma^c\otimes\Sigma^r)$ at the model; some cells are replaced by arbitrary values. $\Omega = \Sigma^{-1} = \Omega^c\otimes\Omega^r$. Cell $(k,l)$ has vec index $c = k + (l-1)p$. $w_{ikl}\in\{0,1\}$ ($1$ = kept), $O_i$ = kept cells, $M_i$ = flagged cells, $m_i = |M_i|$.
@@ -14,7 +14,7 @@ subject to $\sum_i w_{ikl} \ge h = \lceil\alpha n\rceil$ for every position $(k,
 $$F = \sum_i v_i d_i + \mu\sum_i(1-v_i),\qquad \mu = q\log|\Sigma^r_0| + p\log|\Sigma^c_0| + pq\log 2\pi + \chi^2_{pq,0.99}$$
 at the initial estimate ($\mu = -\infty$: hard quota, the MMCD-type trimmed likelihood). A whole matrix is trimmed when its contribution exceeds the $0.99$ quantile of a clean one; flagged cells enter $d_i$ through $\lambda$, i.e. as if they sat at their own $0.99$ conditional quantile. The cell quota then counts the kept observations, $h = \lceil\alpha n_v\rceil$. This is the cellMCD objective of Raymaekers and Rousseeuw (2024) with the Kronecker constraint on $\Sigma$, exactly as MMCD is the MCD with that constraint. $W\equiv 1$ gives the matrix-normal MLE; flagging whole matrices gives a trimmed-observation likelihood of MMCD type. No cell value is replaced: $F$ is the marginal likelihood of the kept cells.
 
-Defaults: $\alpha = \alpha_{obs} = 0.75$, quant $= 0.99$, and the **calibrated penalty** $\lambda_{kl} = c/t_1 + \log t_1 + \log 2\pi + \log\big(1/(\Omega^r_{kk}\Omega^c_{ll})\big)$ at the initial estimate, $c = \chi^2_{1,0.99}$, $t_1 = F_{\chi^2_3}(c)/F_{\chi^2_1}(c) = 0.925$; the final $\Sigma$ is divided by $t_1$ (and by $t_{obs} = F_{\chi^2_{pq+2}}(c_{obs})/F_{\chi^2_{pq}}(c_{obs})$ for the observation step). Reason (§4b): without calibration the fixed point of the iteration sits at scale $0.90$ with $1.4\%$ of clean cells flagged; with it, exactly $1 - $ quant are flagged and the scale is Fisher-consistent (proven in the 1-D proxy, checked numerically in the Kronecker model: tr ratio 0.98–0.99). Cells with $|x_{ikl}|/s_{kl} > 3$ (MAD scale) are flagged permanently. $M$ is the coordinatewise median.
+Defaults: $\alpha = \alpha_{obs} = 0.75$, quant $= 0.99$ for the flags, reweighting at $.999$ (§4d), and the **calibrated penalty** $\lambda_{kl} = c/t_1 + \log t_1 + \log 2\pi + \log\big(1/(\Omega^r_{kk}\Omega^c_{ll})\big)$ at the initial estimate, $c = \chi^2_{1,0.99}$, $t_1 = F_{\chi^2_3}(c)/F_{\chi^2_1}(c) = 0.925$; the final $\Sigma$ is divided by $t_1$ (and by $t_{obs} = F_{\chi^2_{pq+2}}(c_{obs})/F_{\chi^2_{pq}}(c_{obs})$ for the observation step). Reason (§4b): without calibration the fixed point of the iteration sits at scale $0.90$ with $1.4\%$ of clean cells flagged; with it, exactly $1 - $ quant are flagged and the scale is Fisher-consistent (proven in the 1-D proxy, checked numerically in the Kronecker model: tr ratio 0.98–0.99). Cells with $|x_{ikl}|/s_{kl} > 3$ (MAD scale) are flagged permanently. $M$ is the coordinatewise median.
 
 ## 3. The Schur identity (proven; tested to $10^{-15}$)
 With $Y_i$ the centred matrix with flagged cells set to $0$, $u_i = (\Omega^rY_i\Omega^c)[M_i]$ and $\Omega_{M_iM_i} = [\Omega^r_{k_ak_b}\Omega^c_{l_al_b}]_{ab}$:
@@ -43,6 +43,11 @@ Start: `kpair` (§6). Then repeat until $F$ stops changing:
 ### 4c. Observation threshold and the majority rule (block 2)
 The trimming threshold $\mu_i$ is evaluated on the kept cells of $X_i$ only: $\mu_i = \log\det\Sigma_{0,O_iO_i} + |O_i|\log2\pi + \chi^2_{|O_i|,0.99}/t_{obs} + |O_i|\log t_{obs} + \sum_{M_i}\lambda_{kl}$ at the initial estimate (penalties cancel against those in $d_i$). Charging the flagged cells instead (a fixed $\mu$ with $pq$ degrees of freedom) trimmed 12.5 % of the matrices under 5 % cellwise contamination (three flagged cells suffice), which is wrong for a cellwise method. The observed-cell threshold alone, however, misses a shifted matrix most of whose cells are already flagged: its few kept cells look fine by themselves (40 % of shifted matrices trimmed at 20 % contamination, KL 1.33). Hence the constraint that a kept observation has at most `max_flag` $= 1/2$ of its cells flagged; matrices beyond it are trimmed first in the observation step. With this constraint the observation step is the exact minimiser over $v$ of $F$ on the feasible set; a cell step can push a kept matrix over the bound, after which the next observation step trims it, so monotonicity of $F$ is guaranteed only between such transitions (tested: still monotone on the test data). The hard quota ($\mu = -\infty$, exactly $n - h_{obs}$ trimmed) is available as `quant_obs = NULL`; it needs the MCD-type consistency factor $\kappa(\alpha, pq)$, not applied yet (tr ratio 0.87 on clean data).
 
+### 4d. Shape bias of the raw estimator and the reweighting step (block 3)
+**Proposition (proven to first order; iterated population map checked numerically).** At the Gaussian, with cutoff $c = \chi^2_{1,\text{quant}}$ and $\kappa = F_1(c) - F_3(c)$, the population fixed point of the cell/parameter iteration at the truth is, to first order in $\kappa$, $\Sigma^\* = \Sigma - \kappa\operatorname{diag}(1/\Omega_{cc})$ projected onto the Kronecker set. Reason: a flagged clean cell is a *tail* cell of its full conditional ($E[r_c^2\mid |r_c|>c] = (1-F_3)/(1-F_1) = 8.45$), but the parameter step treats it as missing (conditional variance $\sigma_c^2$); the cross moments are unchanged by symmetry. The $t_1$ factor removes the trace part; the rest is a shape bias of order $\tfrac14\kappa^2\sum_{i\ne j}\mathrm{pcor}_{ij}^2$ in KL that does not vanish with $n$: observed KL $\to 0.0115$ at 3×4 (quant .99, $n = 8000$), predicted 0.0111 by the iterated map (`cm_step6b_biasformula.R`). At quant .999, $\kappa = 0.0117$ and the bias is 40 times smaller (0.0003). This is the "efficiency gap" of block 2.
+
+**Remedy adopted (default `reweight = TRUE`).** The raw iteration at quant .99 provides $(v, W)$; every cell of a kept matrix is then re-decided at the raw fit with the cutoff $\chi^2_{1,.999}$ on its residual given the other kept cells (forced marginal flags kept, no quota, $v$ kept), and the parameters are refitted with $(v,W)$ fixed by the EM/flip-flop steps (monotone; the observed-cell MLE given the flags), with the scale divided by $t_{rw} = F_3(c_{rw})/F_1(c_{rw})$ and $t_{obs}$. This is the analogue of the reweighted MCD. Clean 3×4: KL ratio to the MLE 1.01 / 1.09 / 1.49 at $n$ = 500 / 2000 / 8000 ($n\cdot$KL bounded); recall at 3-sd cells 0.96 (quant .999 alone: 0.94). Alternative tried: a *censored* parameter step (`tail = TRUE`: flagged cells contribute the tail second moment $\tau\sigma_c^2$), Fisher-consistent in the 1-D proxy (proven) but only removing two thirds of the bias in the Kronecker model and not monotone in $F$; kept as an option.
+
 ### 4b. Scale calibration (block 2)
 In the 1-D proxy (one cell, working scale $t$, initial scale $t_0$), the cell step flags iff $x^2 > a(t) = t\,(c + \log(t_0/t))$ and the parameter step gives $t' = F_3(a) + t\,(1 - F_1(a))$; the fixed point of the uncalibrated iteration is $t^* = 0.905$ with $1.35\%$ flagged (observed in the Kronecker model: $0.895$, $1.7\%$). With $\lambda$ built from $c/t_1 + \log t_1$ the fixed point is $t_1 = F_3(c)/F_1(c)$ with exactly $1-$quant flagged, and $\Sigma/t_1$ is Fisher-consistent for the scale (proven in the proxy; `cm_proxy_fixpt`). The shape is unaffected to first order: trimming the tails of every full conditional scales $\Omega$ uniformly. Checked numerically: tr ratio $0.98$–$0.99$ at $n = 100$ and $1000$, both shapes.
 
@@ -61,37 +66,40 @@ $s_{kl} = \operatorname{MAD}_i(X_{ikl} - M_{kl})$; $\log s_{kl}^2 = a_k + b_l$ b
 | $F$ unbounded below when $n - h \ge n/\max(p,q)$ | proven (general position) |
 | $F$ bounded below when $n - h < n/\max(p,q)$; full-column constraint as remedy | conjectured |
 | scale fixed point and calibration factor $t_1$ | proven in the 1-D proxy, checked numerically |
-| efficiency at the Gaussian: KL ratio to the MLE 2.4 at quant .99, 1.3 at .999 | checked numerically, unexplained |
+| raw estimator inconsistent in shape at the Gaussian: fixed point $\Sigma - \kappa\operatorname{diag}(1/\Omega_{cc})$ to first order | proven to first order; iterated map checked numerically (0.0111 vs 0.0115) |
+| reweighted estimator: $n\cdot$KL bounded, ratio to the MLE 1.0–1.5 at $n \le 8000$ | checked numerically |
+| full-column constraint prevents degenerate descents | refuted numerically as a post-hoc repair (`cm_step7`) |
 | breakdown under cellwise contamination | open |
 
 ## 8. Open problems
-1. Implement the full-column constraint (§4a) or another safeguard against degenerate descents at small $n$; prove the converse.
-2. Efficiency: why 1 % cell trimming costs 60 % of the efficiency; a final step at a higher quantile.
+1. Degenerate descents at small $n$ ($n \le 12$): the full-column repair failed (§7); find the right constraint or a stopping rule; prove or refute the converse of §4a.
+2. A *monotone* consistent formulation (censored-cell objective with the cutoff region fixed at the initial estimate) instead of the reweighting device; the residual bias of the reweighted estimator at $n \to \infty$ is $\kappa(.999)^2$-small but not zero.
+2b. Interplay of the two trimming steps: under 10 % cells at 3–4 sd in every matrix the observation step trims its full 25 % of matrices (`cm_step8`).
 3. Joint estimation of $M$ (the median plug-in is used now).
 4. Rcpp for the cell step when $pq$ is large; vectorising the $m = 0$ case.
 5. Cells that are bad *and* near their conditional mean cannot be detected (as for every cellwise method).
 
-## 9. Results so far (details in `JOURNAL.md` and `output/cm_step1.log`, rerun in block 3 with the calibrated default and the observation step)
+## 9. Results so far (details in `JOURNAL.md` and `output/cm_step1.log`, rerun in block 3 with the final default: calibration, observation step, reweighting; the raw-.99 run is `cm_step1_raw99.log`)
 Median KL, n = 100, 20 reps, cells shifted by 6 sd with random sign:
 
-| ε | cellMMCD | cellMCD on vec + Kronecker | kpair | RJ | MMCD | MLE |
-|---|---|---|---|---|---|---|
-| 0 (3×4 / 5×5) | 0.125 / 0.25 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
-| .05 | 0.10 / 0.25 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
-| .10 | 0.11 / 0.26 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
-| .20 | 0.18 / 0.39 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
+| ε | cellMMCD (default) | cellMMCD raw .99 | cellMCD on vec + Kronecker | kpair | RJ | MMCD | MLE |
+|---|---|---|---|---|---|---|---|
+| 0 (3×4 / 5×5) | 0.095 / 0.205 | 0.125 / 0.25 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
+| .05 | 0.089 / 0.187 | 0.10 / 0.25 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
+| .10 | 0.096 / 0.209 | 0.11 / 0.26 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
+| .20 | 0.145 / 0.353 | 0.18 / 0.39 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
 
-Recall of bad cells 0.97–1.00, false flags 0.4–1.7 %, clean-data scale ratio 0.99–1.00. Run time 0.1–0.7 s at n = 100 (pure R); 10 s at 10×10, n = 200.
+Recall of bad cells 0.97–1.00, false flags 0.1–0.6 % (default) / 0.4–1.7 % (raw), clean-data scale ratio 0.99–1.00. Run time 0.1–0.7 s at n = 100 (pure R); 10 s at 10×10, n = 200.
 
-**Casewise and mixed contamination (block 2; `output/cm_step4_mixed.log`, p = q = 5, n = 100, 10 reps, median KL).** Casewise types on 10 % / 20 % of the matrices: shift (+5 in every cell), scale (×3), struct (flipped correlation signs).
+**Casewise and mixed contamination (block 2, rerun in block 3 with the reweighted default; `output/cm_step4_mixed.log`, block-2 raw numbers in `cm_step4_mixed_block2.log`; p = q = 5, n = 100, 10 reps, median KL).** Casewise types on 10 % / 20 % of the matrices: shift (+5 in every cell), scale (×3), struct (flipped correlation signs). All cellMMCD columns are reweighted.
 
 | contamination | cells only | cellMMCD (default: observation step, majority rule) | hard quota | MMCD | MLE |
 |---|---|---|---|---|---|
-| none | 0.31 | 0.31 | 0.50 | 0.18 | 0.16 |
-| 5 % cells | 0.29 | 0.29 | 0.41 | 45 | 63 |
-| shift 10 % / 20 % | 0.36 / 2.48 | 0.24 / 0.37 | 0.34 / 0.37 | 0.18 / 0.21 | 2.0 / 4.0 |
-| scale 10 % / 20 % | 0.38 / 0.95 | 0.25 / 0.28 | 0.36 / 0.31 | 0.20 / 0.27 | 2.9 / 9.0 |
-| struct 10 % / 20 % | 0.29 / 0.62 | 0.20 / 0.30 | 0.30 / 0.28 | 0.18 / 0.23 | 4.3 / 10.6 |
-| shift 10 % + 5 % cells | 0.43 | 0.25 | 0.35 | 51 | 66 |
+| none | 0.20 | 0.22 | 0.38 | 0.18 | 0.16 |
+| 5 % cells | 0.17 | 0.17 | 0.37 | 45 | 63 |
+| shift 10 % / 20 % | 0.24 / 1.95 | 0.18 / 0.21 | 0.24 / 0.22 | 0.18 / 0.21 | 2.0 / 4.0 |
+| scale 10 % / 20 % | 0.30 / 0.95 | 0.19 / 0.22 | 0.30 / 0.26 | 0.20 / 0.27 | 2.9 / 9.0 |
+| struct 10 % / 20 % | 0.36 / 1.11 | 0.19 / 0.29 | 0.32 / 0.28 | 0.18 / 0.23 | 4.3 / 10.6 |
+| shift 10 % + 5 % cells | 0.32 | 0.23 | 0.29 | 51 | 66 |
 
-The default trims every shifted or scaled matrix and 85–95 % of the structural ones, at 0–3 % of the clean ones; the hard quota always trims 25 % and is not yet scale-corrected. The clean-data gap to MMCD and the MLE is the efficiency question of §8.
+The default trims every shifted or scaled matrix and 85–95 % of the structural ones, at 0–3 % of the clean ones; the hard quota always trims 25 % and is not yet scale-corrected. The clean-data gap to MMCD is now 0.22 vs 0.18 (block 2: 0.31). The clean-data gap to MMCD and the MLE is the efficiency question of §8.
