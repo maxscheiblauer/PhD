@@ -16,7 +16,9 @@ Develop a complete method for estimating a **Kronecker-structured covariance**, 
 ## Guidelines from the owner (binding)
 1. **Avoid imputation of cellwise outliers.** Statistically it is messy. Do not build the method around replacing flagged cells by predicted values.
 2. **EM algorithms** can work here but are extremely costly computationally. Try one **only if no better idea is found**, and document why the alternatives failed.
-3. **Build on Marcus Mayrhofer's CRAN package `robustmatrix`** (0.1.5): MMCD, flip-flop MLE, MMD, Shapley values. Its source is at https://github.com/cran/robustmatrix (C++ in `src/functions.cpp`). Reuse its conventions where sensible.
+3. **Develop your own code.** Marcus Mayrhofer's CRAN package `robustmatrix` (0.1.5: MMCD, flip-flop MLE, MMD, Shapley values; source at https://github.com/cran/robustmatrix, C++ in `src/functions.cpp`) is **not a priority** and need not be the code base.
+   - Use it where it is genuinely useful, e.g. as the MMCD benchmark or for borrowed pieces.
+   - Equally use anything useful found elsewhere: other packages, papers, algorithms.
 4. **Start from the owner's preliminary work:** the trimmed-likelihood estimators for Kronecker covariances in this repo, in particular **RJ**, the joint trimmed likelihood on whitened columns with a per-column quota.
 5. Matrix-variate only. Tensors and functional data are out of scope.
 

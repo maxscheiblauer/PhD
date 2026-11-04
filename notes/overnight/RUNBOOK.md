@@ -47,8 +47,7 @@ Prices (from the claude-api skill, cached 2026-10-06), USD per million tokens:
 Cache writes are assumed to cost 2× input for the 1 h TTL. A $15 Fable block is very roughly 45–90 minutes of work, depending on how much it thinks versus runs code. The meter estimate was checked against `get_session` on 2026-11-04: $2.90 estimated vs $2.80 actual.
 
 ## Pre-flight checklist (owner)
-1. **GitHub push access.** Pushes currently fail with 403. Fix it via https://claude.ai/connect-github: install the Claude GitHub App on `maxscheiblauer/PhD`.
-   **Without this the relay cannot work**, because the git push is the hand-over between blocks.
+1. **GitHub push access.** Done; pushes have worked since 2026-11-04.
 2. **Network allowlist** (environment settings → Network access): `arxiv.org`, `export.arxiv.org`, `repositum.tuwien.at`, `wis.kuleuven.be`, `lirias.kuleuven.be`, `cran.r-project.org`, `cloud.r-project.org`.
    Optional, but literature work is much weaker without them.
 3. Choose the **worker model** (the default proposal is `claude-fable-5-1`) and confirm the budget numbers.
