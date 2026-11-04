@@ -1,0 +1,46 @@
+cellMMCD step 17 (block 6): reweighted hard quota on the cellwise grid, n = 100, 10 reps. Medians.
+
+== 5x5, cells 0.00 at 6 sd ==
+           kl    tr trimmed recall    fp
+soft    0.183 0.976   0.000     NA 0.006
+hard_rw 0.208 0.978   0.005     NA 0.007
+
+== 5x5, cells 0.05 at 6 sd ==
+           kl    tr trimmed recall    fp
+soft    0.169 0.973    0.00      1 0.005
+hard_rw 0.180 0.972    0.01      1 0.005
+
+== 5x5, cells 0.10 at 6 sd ==
+           kl    tr trimmed recall    fp
+soft    0.229 0.975   0.000      1 0.003
+hard_rw 0.262 0.973   0.005      1 0.003
+
+== 5x5, cells 0.20 at 6 sd ==
+           kl    tr trimmed recall    fp
+soft    0.255 0.981   0.020  0.994 0.003
+hard_rw 0.256 0.987   0.005  1.000 0.003
+
+== 5x5, cells 0.10 at 3 sd ==
+           kl    tr trimmed recall    fp
+soft    0.235 1.031    0.00  0.942 0.004
+hard_rw 0.228 1.010    0.01  0.938 0.004
+
+== 5x5, cells 0.10 at 4 sd ==
+           kl    tr trimmed recall    fp
+soft    0.195 1.002       0  0.996 0.003
+hard_rw 0.203 1.001       0  0.996 0.002
+
+== 3x4, cells 0.00 at 6 sd ==
+           kl    tr trimmed recall    fp
+soft    0.094 0.991    0.00     NA 0.006
+hard_rw 0.088 0.984    0.01     NA 0.006
+
+== 3x4, cells 0.10 at 6 sd ==
+           kl    tr trimmed recall    fp
+soft    0.101 0.990       0      1 0.002
+hard_rw 0.094 1.001       0      1 0.002
+
+== 3x4, cells 0.20 at 6 sd ==
+           kl    tr trimmed recall    fp
+soft    0.105 1.014    0.01  0.996 0.002
+hard_rw 0.105 1.014    0.01  1.000 0.003
