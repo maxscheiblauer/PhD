@@ -99,11 +99,13 @@ cm_delta1 <- function(Tf, Or, Oc, Mi, c, p) {
 # without a quota (sequential coordinate descent on their own d_i). They do not enter F through d_i, but the
 # observation step compares d_i - mu_i at the current W_i, so a matrix trimmed only because its cellwise
 # outliers were still unflagged (W = Wfix at the first observation step) can be re-admitted once they are.
-cm_wstep <- function(Xc, Sr, Sc, W, Wfix, lambda, h, v = NULL, shadow = FALSE) {
+# engine = "cpp" (default when src/cm_wstep.cpp compiled, see R/load.R) runs the same loop in C++ (test 20: identical W).
+cm_wstep <- function(Xc, Sr, Sc, W, Wfix, lambda, h, v = NULL, shadow = FALSE, engine = getOption("cellmmcd.engine", "R")) {
   p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
   if (is.null(v)) v <- rep(TRUE, n); nv <- sum(v)
   Or <- solve(Sr); Oc <- solve(Sc)
-  Tf <- array(0, dim(Xc)); for (i in which(v)) Tf[, , i] <- Or %*% Xc[, , i] %*% Oc
+  Tf <- array(0, dim(Xc)); for (i in if (shadow) 1:n else which(v)) Tf[, , i] <- Or %*% Xc[, , i] %*% Oc
+  if (engine == "cpp") return(cm_wstep_cpp(Tf, Or, Oc, W, Wfix, lambda, as.integer(h), v, shadow))
   for (c in 1:(p * q)) {
     k <- (c - 1) %% p + 1; l <- (c - 1) %/% p + 1
     free <- which(Wfix[k, l, ] & v)
@@ -300,7 +302,10 @@ cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   Xc <- sweep(X, c(1, 2), fit$M); Or <- solve(fit$Sr); Oc <- solve(fit$Sc)
   crw <- qchisq(quant_rw, 1); v <- fit$v; W <- fit$W
-  for (i in which(v)) {
+  if (getOption("cellmmcd.engine", "R") == "cpp") {
+    Tf <- array(0, dim(Xc)); for (i in which(v)) Tf[, , i] <- Or %*% Xc[, , i] %*% Oc
+    W <- cm_reweight_cpp(Tf, Or, Oc, fit$W, fit$Wfix, crw, v)
+  } else for (i in which(v)) {
     Tf <- Or %*% Xc[, , i] %*% Oc; Mi <- which(!fit$W[, , i])
     r2 <- vapply(1:(p * q), function(c) cm_r2(Tf, Or, Oc, Mi, c, p), 0)
     W[, , i] <- fit$Wfix[, , i] & (r2 <= crw)

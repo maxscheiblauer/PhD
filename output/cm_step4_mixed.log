@@ -2,99 +2,99 @@ cellMMCD step 4: p = q = 5, n = 100, 10 reps. Medians.
 
 == case shift 0.10, cells 0.00 ==
   cellMMCD_cells flagged 0.92 of cells in bad matrices, 0.003 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 5
-  cellMMCD_soft  flagged 0.91 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.022 of good; cell recall NA; iter 4
-  cellMMCD_hard  flagged 0.91 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall NA; iter 4
+  cellMMCD_soft  flagged 0.94 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.000 of good; cell recall NA; iter 4
+  cellMMCD_hard  flagged 0.94 of cells in bad matrices, 0.011 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall NA; iter 4
                   kl   skl    tr
 FF             2.043 1.347 1.342
 cellMMCD_cells 0.243 0.228 1.049
-cellMMCD_soft  0.176 0.175 1.008
-cellMMCD_hard  0.236 0.213 0.933
+cellMMCD_soft  0.166 0.154 1.022
+cellMMCD_hard  0.285 0.238 0.926
 MMCD           0.182 0.159 1.053
 
 == case scale 0.10, cells 0.00 ==
   cellMMCD_cells flagged 0.40 of cells in bad matrices, 0.004 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 5
-  cellMMCD_soft  flagged 0.30 of cells in bad matrices, 0.004 in clean; trimmed 1.00 of bad matrices, 0.006 of good; cell recall NA; iter 4
-  cellMMCD_hard  flagged 0.30 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall NA; iter 4
+  cellMMCD_soft  flagged 0.44 of cells in bad matrices, 0.004 in clean; trimmed 0.60 of bad matrices, 0.000 of good; cell recall NA; iter 4
+  cellMMCD_hard  flagged 0.47 of cells in bad matrices, 0.010 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall NA; iter 4
                   kl   skl    tr
 FF             2.868 0.289 1.781
 cellMMCD_cells 0.295 0.243 1.091
-cellMMCD_soft  0.192 0.186 0.993
-cellMMCD_hard  0.297 0.250 0.907
+cellMMCD_soft  0.225 0.206 1.039
+cellMMCD_hard  0.297 0.251 0.908
 MMCD           0.196 0.171 1.035
 
 == case struct 0.10, cells 0.00 ==
   cellMMCD_cells flagged 0.15 of cells in bad matrices, 0.006 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 5
-  cellMMCD_soft  flagged 0.01 of cells in bad matrices, 0.006 in clean; trimmed 0.95 of bad matrices, 0.011 of good; cell recall NA; iter 4
-  cellMMCD_hard  flagged 0.00 of cells in bad matrices, 0.006 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall NA; iter 4
+  cellMMCD_soft  flagged 0.15 of cells in bad matrices, 0.006 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 5
+  cellMMCD_hard  flagged 0.22 of cells in bad matrices, 0.012 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall NA; iter 4
                   kl   skl    tr
 FF             4.282 2.514 1.597
 cellMMCD_cells 0.355 0.312 1.065
-cellMMCD_soft  0.188 0.185 0.981
-cellMMCD_hard  0.319 0.238 0.905
+cellMMCD_soft  0.357 0.312 1.066
+cellMMCD_hard  0.328 0.250 0.898
 MMCD           0.180 0.172 1.016
 
 == case shift 0.20, cells 0.00 ==
   cellMMCD_cells flagged 0.67 of cells in bad matrices, 0.007 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 7
-  cellMMCD_soft  flagged 0.67 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.031 of good; cell recall NA; iter 4
-  cellMMCD_hard  flagged 0.67 of cells in bad matrices, 0.004 in clean; trimmed 1.00 of bad matrices, 0.062 of good; cell recall NA; iter 4
+  cellMMCD_soft  flagged 0.72 of cells in bad matrices, 0.004 in clean; trimmed 1.00 of bad matrices, 0.000 of good; cell recall NA; iter 4
+  cellMMCD_hard  flagged 0.73 of cells in bad matrices, 0.007 in clean; trimmed 1.00 of bad matrices, 0.062 of good; cell recall NA; iter 4
                   kl   skl    tr
 FF             4.013 2.475 1.576
 cellMMCD_cells 1.948 1.525 1.258
-cellMMCD_soft  0.207 0.203 0.997
-cellMMCD_hard  0.216 0.202 0.972
+cellMMCD_soft  0.204 0.190 1.013
+cellMMCD_hard  0.230 0.220 0.963
 MMCD           0.208 0.150 1.092
 
 == case scale 0.20, cells 0.00 ==
   cellMMCD_cells flagged 0.35 of cells in bad matrices, 0.003 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 6
-  cellMMCD_soft  flagged 0.25 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.000 of good; cell recall NA; iter 4
-  cellMMCD_hard  flagged 0.25 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.062 of good; cell recall NA; iter 4
+  cellMMCD_soft  flagged 0.41 of cells in bad matrices, 0.003 in clean; trimmed 0.60 of bad matrices, 0.000 of good; cell recall NA; iter 5
+  cellMMCD_hard  flagged 0.45 of cells in bad matrices, 0.005 in clean; trimmed 1.00 of bad matrices, 0.062 of good; cell recall NA; iter 4
                   kl   skl    tr
 FF             9.017 0.354 2.675
 cellMMCD_cells 0.950 0.403 1.334
-cellMMCD_soft  0.223 0.205 1.020
-cellMMCD_hard  0.259 0.241 0.979
+cellMMCD_soft  0.411 0.292 1.129
+cellMMCD_hard  0.266 0.246 0.972
 MMCD           0.271 0.208 1.106
 
 == case struct 0.20, cells 0.00 ==
   cellMMCD_cells flagged 0.12 of cells in bad matrices, 0.006 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 6
-  cellMMCD_soft  flagged 0.03 of cells in bad matrices, 0.006 in clean; trimmed 0.85 of bad matrices, 0.000 of good; cell recall NA; iter 4
-  cellMMCD_hard  flagged 0.01 of cells in bad matrices, 0.006 in clean; trimmed 0.95 of bad matrices, 0.075 of good; cell recall NA; iter 4
+  cellMMCD_soft  flagged 0.14 of cells in bad matrices, 0.005 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall NA; iter 6
+  cellMMCD_hard  flagged 0.22 of cells in bad matrices, 0.009 in clean; trimmed 0.95 of bad matrices, 0.075 of good; cell recall NA; iter 4
                    kl   skl    tr
 FF             10.607 4.722 2.304
 cellMMCD_cells  1.105 0.768 1.229
-cellMMCD_soft   0.285 0.278 1.027
-cellMMCD_hard   0.282 0.252 0.967
+cellMMCD_soft   1.138 0.759 1.230
+cellMMCD_hard   0.283 0.268 0.969
 MMCD            0.225 0.202 1.087
 
 == case shift 0.10, cells 0.05 ==
   cellMMCD_cells flagged 0.89 of cells in bad matrices, 0.003 in clean; trimmed 0.00 of bad matrices, 0.000 of good; cell recall 0.97; iter 6
-  cellMMCD_soft  flagged 0.87 of cells in bad matrices, 0.002 in clean; trimmed 1.00 of bad matrices, 0.017 of good; cell recall 0.95; iter 5
-  cellMMCD_hard  flagged 0.87 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall 0.95; iter 5
+  cellMMCD_soft  flagged 0.90 of cells in bad matrices, 0.003 in clean; trimmed 1.00 of bad matrices, 0.000 of good; cell recall 0.98; iter 5
+  cellMMCD_hard  flagged 0.90 of cells in bad matrices, 0.004 in clean; trimmed 1.00 of bad matrices, 0.167 of good; cell recall 0.98; iter 5
                    kl   skl    tr
 FF             65.630 2.740 8.122
 cellMMCD_cells  0.321 0.308 1.069
-cellMMCD_soft   0.228 0.218 1.002
-cellMMCD_hard   0.292 0.251 0.940
+cellMMCD_soft   0.217 0.214 1.010
+cellMMCD_hard   0.287 0.250 0.934
 MMCD           51.343 4.618 6.632
 
 == case none 0.00, cells 0.05 ==
   cellMMCD_cells flagged NA of cells in bad matrices, 0.006 in clean; trimmed NA of bad matrices, 0.000 of good; cell recall 1.00; iter 5
-  cellMMCD_soft  flagged NA of cells in bad matrices, 0.006 in clean; trimmed NA of bad matrices, 0.020 of good; cell recall 1.00; iter 5
-  cellMMCD_hard  flagged NA of cells in bad matrices, 0.007 in clean; trimmed NA of bad matrices, 0.250 of good; cell recall 1.00; iter 4
+  cellMMCD_soft  flagged NA of cells in bad matrices, 0.006 in clean; trimmed NA of bad matrices, 0.000 of good; cell recall 1.00; iter 5
+  cellMMCD_hard  flagged NA of cells in bad matrices, 0.009 in clean; trimmed NA of bad matrices, 0.250 of good; cell recall 1.00; iter 4
                    kl   skl    tr
 FF             62.733 4.344 7.738
 cellMMCD_cells  0.172 0.164 0.981
-cellMMCD_soft   0.174 0.165 0.974
-cellMMCD_hard   0.372 0.280 0.891
+cellMMCD_soft   0.169 0.164 0.990
+cellMMCD_hard   0.378 0.300 0.892
 MMCD           44.559 4.788 5.972
 
 == case none 0.00, cells 0.00 ==
   cellMMCD_cells flagged NA of cells in bad matrices, 0.008 in clean; trimmed NA of bad matrices, 0.000 of good; cell recall NA; iter 4
-  cellMMCD_soft  flagged NA of cells in bad matrices, 0.007 in clean; trimmed NA of bad matrices, 0.030 of good; cell recall NA; iter 4
-  cellMMCD_hard  flagged NA of cells in bad matrices, 0.007 in clean; trimmed NA of bad matrices, 0.250 of good; cell recall NA; iter 4
+  cellMMCD_soft  flagged NA of cells in bad matrices, 0.008 in clean; trimmed NA of bad matrices, 0.000 of good; cell recall NA; iter 4
+  cellMMCD_hard  flagged NA of cells in bad matrices, 0.016 in clean; trimmed NA of bad matrices, 0.250 of good; cell recall NA; iter 4
                   kl   skl    tr
 FF             0.159 0.150 1.001
 cellMMCD_cells 0.197 0.180 0.975
-cellMMCD_soft  0.219 0.200 0.972
-cellMMCD_hard  0.380 0.269 0.878
+cellMMCD_soft  0.200 0.190 0.979
+cellMMCD_hard  0.422 0.288 0.867
 MMCD           0.182 0.181 0.993

@@ -26,3 +26,4 @@ output/*.rds
 references/*.pdf
 output/*.err
 output/setup.log
+output/cpp_cache/

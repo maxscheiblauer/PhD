@@ -153,5 +153,17 @@ res["proxy_if"] <- ok(sprintf("proxy IF: T(Phi) = (%.6f, %.6f), max |numeric - f
                               T0["raw"], T0["rw"], max(dif), cm_proxy_if(10)["rw"], ges),
                       max(abs(T0[c("raw", "rw")] - 1)) < 1e-8 && max(dif) < 1e-3 && abs(cm_proxy_if(10)["rw"]) < 0.01 && ges < 11)
 
+## 20. C++ cell step equals the R cell step (kept and trimmed observations, shadow on), and the full fits agree.
+set.seed(20); X20 <- X18; v20 <- rep(TRUE, n18); v20[c(3, 7, 11, 40)] <- FALSE
+st20 <- kpair(X20); Xc20 <- sweep(X20, c(1, 2), apply(X20, c(1, 2), median)); Wf20 <- sweep(abs(Xc20), c(1, 2), apply(abs(Xc20), c(1, 2), median) / 0.6745, "/") < 2.5
+lam20 <- 6 + log(2 * pi) - log(outer(diag(solve(st20$Sr)), diag(solve(st20$Sc))))
+Wr <- cm_wstep(Xc20, st20$Sr, st20$Sc, Wf20, Wf20, lam20, 60, v20, shadow = TRUE, engine = "R")
+if (isTRUE(has_cpp)) { Wc <- cm_wstep(Xc20, st20$Sr, st20$Sc, Wf20, Wf20, lam20, 60, v20, shadow = TRUE, engine = "cpp")
+  options(cellmmcd.engine = "R"); fr <- cellmmcd(X20); options(cellmmcd.engine = "cpp"); fc <- cellmmcd(X20)
+  res["cpp"] <- ok(sprintf("C++ cell step: W identical %s (%d flags), full fits: max |Sr diff| %.1e, flagged %.3f vs %.3f",
+                           identical(Wr, Wc), sum(!Wr), max(abs(fr$Sr - fc$Sr)), fr$flagged, fc$flagged),
+                   identical(Wr, Wc) && max(abs(fr$Sr - fc$Sr)) < 1e-10 && identical(fr$W, fc$W))
+} else cat("[SKIP] C++ cell step not compiled\n")
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)
