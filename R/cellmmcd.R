@@ -125,8 +125,13 @@ cm_pstep <- function(Xc, Sr, Sc, W) {
 }
 
 ## ---- 5. Driver ---------------------------------------------------------------------
+# calib = TRUE: lambda-calibration (journal, block 2). With c = chi2_{1,quant} and
+# t1 = F_chi2_3(c) / F_chi2_1(c), lambda uses c / t1 + log t1 instead of c, and the final
+# Sigma is divided by t1. In the 1-D proxy this makes the fixed point flag exactly 1 - quant
+# of the clean cells and the returned scale Fisher-consistent; without it the fixed point
+# sits at scale ~0.90 with ~1.4 % flagged (cm_proxy_fixpt).
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, maxit = 100, tol = 1e-8, init = NULL,
-                     marg_cut = 3, trace = FALSE) {
+                     marg_cut = 3, calib = TRUE, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -134,7 +139,8 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, maxit = 100, tol = 1e-8, ini
   Wfix <- sweep(abs(Xc), c(1, 2), s, "/") <= marg_cut
   h <- ceiling(alpha * n)
   Or <- solve(st$Sr); Oc <- solve(st$Sc)
-  lambda <- qchisq(quant, 1) + log(2 * pi) - log(outer(diag(Or), diag(Oc)))
+  cq <- qchisq(quant, 1); t1 <- if (calib) pchisq(cq, 3) / pchisq(cq, 1) else 1
+  lambda <- cq / t1 + log(t1) + log(2 * pi) - log(outer(diag(Or), diag(Oc)))
   Sr <- st$Sr; Sc <- st$Sc; W <- Wfix
   obj <- numeric(0); prev <- Inf
   for (it in 1:maxit) {
@@ -147,7 +153,20 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, maxit = 100, tol = 1e-8, ini
     if (abs(prev - f2) < tol * abs(f2)) break
     prev <- f2
   }
-  sc <- scale_ident(Sr, Sc, "det")
+  sc <- scale_ident(Sr / t1, Sc, "det")
   list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, obj = obj, iter = it, flagged = mean(!W),
-       lambda = lambda, start = st, converged = it < maxit)
+       lambda = lambda, factor = t1, start = st, converged = it < maxit)
+}
+
+## ---- 6. Scale fixed point of the 1-D proxy (journal, block 2) ------------------------
+# One cell, true conditional variance 1, working scale t, initial scale t0, threshold
+# constant cc (= chi2_{1,quant}, or chi2_{1,quant} / t1 + log t1 when calibrated).
+# Cell step flags iff x^2 > a(t) = t (cc + log(t0 / t)); parameter step t' = F3(a) + t (1 - F1(a)).
+# Returns the fixed point t* and the flagged fraction at t*.
+cm_proxy_fixpt <- function(quant = 0.99, calib = TRUE, t0 = 1, iter = 500) {
+  cq <- qchisq(quant, 1); t1 <- if (calib) pchisq(cq, 3) / pchisq(cq, 1) else 1
+  cc <- cq / t1 + log(t1); t <- 1
+  for (k in 1:iter) { a <- t * (cc + log(t0 / t)); t <- pchisq(a, 3) + t * (1 - pchisq(a, 1)) }
+  a <- t * (cc + log(t0 / t))
+  c(t = t, flagged = 1 - pchisq(a, 1), t1 = t1)
 }

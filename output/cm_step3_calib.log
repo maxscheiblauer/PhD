@@ -1,0 +1,5 @@
+proxy fixed point, uncalibrated: t* = 0.9052, flagged 0.0135; calibrated: t1 = 0.9248, flagged .0100
+3x4 n= 100 | uncalibrated: tr 0.899 flagged 0.021 KL 0.176 | calibrated: tr 0.994 flagged 0.017 KL 0.138 (shape 0.129) | MLE KL 0.097 | iter 6
+3x4 n=1000 | uncalibrated: tr 0.893 flagged 0.017 KL 0.065 | calibrated: tr 0.984 flagged 0.014 KL 0.021 (shape 0.020) | MLE KL 0.007 | iter 6
+5x5 n= 100 | uncalibrated: tr 0.885 flagged 0.024 KL 0.353 | calibrated: tr 0.979 flagged 0.020 KL 0.237 (shape 0.229) | MLE KL 0.130 | iter 7
+5x5 n=1000 | uncalibrated: tr 0.897 flagged 0.017 KL 0.130 | calibrated: tr 0.993 flagged 0.013 KL 0.041 (shape 0.040) | MLE KL 0.015 | iter 6

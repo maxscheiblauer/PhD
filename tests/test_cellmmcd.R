@@ -69,5 +69,17 @@ res["kpair"] <- ok(sprintf("kpair n=3000: shape errors %.3f (Sr) %.3f (Sc), tr r
                            shape_err(kp$Sr, S$Sr), shape_err(kp$Sc, S$Sc), tr_ratio(kp$Sr, kp$Sc, S$Sr, S$Sc)),
                    shape_err(kp$Sr, S$Sr) < 0.05 && shape_err(kp$Sc, S$Sc) < 0.05)
 
+## 7. Scale calibration (block 2): proxy fixed point and clean-data scale of the Kronecker fit
+fx0 <- cm_proxy_fixpt(calib = FALSE); fx1 <- cm_proxy_fixpt(calib = TRUE)
+res["proxy_fixpt"] <- ok(sprintf("proxy fixed point: uncalibrated t* %.3f (%.1f%% flagged), calibrated t* %.4f = t1 %.4f (%.2f%% flagged)",
+                                 fx0["t"], 100 * fx0["flagged"], fx1["t"], fx1["t1"], 100 * fx1["flagged"]),
+                         abs(fx1["t"] - fx1["t1"]) < 1e-6 && abs(fx1["flagged"] - 0.01) < 1e-6 && fx0["t"] < 0.92)
+set.seed(7); Xcl <- rmatnorm(600, Sr = S$Sr, Sc = S$Sc)
+f0 <- cellmmcd(Xcl, calib = FALSE); f1 <- cellmmcd(Xcl, calib = TRUE)
+tr0 <- tr_ratio(f0$Sr, f0$Sc, S$Sr, S$Sc); tr1 <- tr_ratio(f1$Sr, f1$Sc, S$Sr, S$Sc)
+res["calib_scale"] <- ok(sprintf("clean n=600: tr ratio %.3f (uncalibrated, %.1f%% flagged) vs %.3f (calibrated, %.1f%% flagged)",
+                                 tr0, 100 * f0$flagged, tr1, 100 * f1$flagged),
+                         abs(tr1 - 1) < 0.04 && abs(tr1 - 1) < abs(tr0 - 1) && f1$flagged < f0$flagged)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

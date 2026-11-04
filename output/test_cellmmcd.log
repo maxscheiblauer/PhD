@@ -1,0 +1,13 @@
+[PASS] objective: Schur form vs brute force, rel diff 7.5e-16
+[PASS] cell criterion: max |Delta - lambda - (F_unflag - F_flag)| = 3.6e-13
+[PASS] parameter step without flags = flip-flop step
+[PASS] parameter step with flags: F 1520.508 -> 1506.377
+[PASS] cellmmcd monotone: max increase of F = 0.0e+00 over 15 half-steps, converged = TRUE
+[PASS] flags: recall 1.00, false-positive rate 0.010
+[PASS] KL: cellMMCD 0.10, kpair start 0.62, flip-flop MLE 57.69
+[PASS] kpair n=3000: shape errors 0.017 (Sr) 0.034 (Sc), tr ratio 1.035
+[PASS] proxy fixed point: uncalibrated t* 0.905 (1.4% flagged), calibrated t* 0.9248 = t1 0.9248 (1.00% flagged)
+[PASS] clean n=600: tr ratio 0.898 (uncalibrated, 1.9% flagged) vs 0.987 (calibrated, 1.6% flagged)
+
+10 / 10 tests passed
+DONE
