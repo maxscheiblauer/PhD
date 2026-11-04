@@ -144,5 +144,14 @@ res["shadow"] <- ok(sprintf("shadow step: trimmed %.2f (block 3: %.2f), KL %.3f 
                             all(diff(o18) <= 1e-8 * abs(o18[-1]))),
                     f18b$trimmed < f18a$trimmed && f18b$trimmed <= 0.1 && all(diff(o18) <= 1e-8 * abs(o18[-1])))
 
+## 19. Influence functions in the 1-D proxy (block 4): the formulas of cm_proxy_if against the exact
+## functionals under (1 - eps) Phi + eps delta_x; Fisher consistency at Phi; bounded, and ~0 beyond the cutoff.
+xs <- c(0, 1, 2, 2.5, 3, 3.2, 3.5, 10); eps <- 1e-6
+dif <- sapply(xs, function(x) { nu <- (cm_proxy_T(x, eps) - cm_proxy_T(x, 0)) / eps; an <- cm_proxy_if(x); max(abs(nu - an)[c("raw", "rw")]) })
+T0 <- cm_proxy_T(1, 0); ges <- max(abs(sapply(seq(0, 6, by = 0.001), function(x) cm_proxy_if(x)["rw"])))
+res["proxy_if"] <- ok(sprintf("proxy IF: T(Phi) = (%.6f, %.6f), max |numeric - formula| %.1e, IF_rw(10) = %.4f, gross-error sensitivity %.2f",
+                              T0["raw"], T0["rw"], max(dif), cm_proxy_if(10)["rw"], ges),
+                      max(abs(T0[c("raw", "rw")] - 1)) < 1e-8 && max(dif) < 1e-3 && abs(cm_proxy_if(10)["rw"]) < 0.01 && ges < 11)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

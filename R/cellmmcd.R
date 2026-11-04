@@ -333,3 +333,35 @@ cm_proxy_fixpt <- function(quant = 0.99, calib = TRUE, t0 = 1, iter = 500, tau =
   a <- t * (cc + log(t0 / t))
   c(t = t, flagged = 1 - pchisq(a, 1), t1 = t1)
 }
+
+## ---- 7. Influence functions in the 1-D proxy (block 4) -----------------------------------
+# One cell with residual distribution F; the start is the squared standardized MAD t0(F); the raw
+# estimator is the calibrated fixed point T_raw(F) = t*/t1 of t <- N_F(a(t)) + t (1 - D_F(a(t))),
+# a(t) = t (c/t1 + log t1 + log(t0/t)), with N_F(a) = int x^2 1(x^2 <= a) dF and D_F(a) = int 1(x^2 <= a) dF
+# (flagged cells are missing: they contribute the current scale t); the reweighted estimator is
+# T_rw(F) = N_F(a_rw) / D_F(a_rw) / t_rw with a_rw = c_rw T_raw(F). Both equal 1 at F = Phi (Fisher-consistent).
+# cm_proxy_T evaluates them exactly under F_eps = (1 - eps) Phi + eps delta_x (integrals in closed form);
+# cm_proxy_if gives the influence functions derived in JOURNAL.md (block 4); test 19 compares them.
+cm_proxy_T <- function(x, eps = 0, quant = 0.99, quant_rw = 0.999, iter = 2000) {
+  c1 <- qchisq(quant, 1); t1 <- pchisq(c1, 3) / pchisq(c1, 1); cc <- c1 / t1 + log(t1)
+  crw <- qchisq(quant_rw, 1); trw <- pchisq(crw, 3) / pchisq(crw, 1)
+  N <- function(a) (1 - eps) * pchisq(a, 3) + eps * x^2 * (x^2 <= a)
+  D <- function(a) (1 - eps) * pchisq(a, 1) + eps * (x^2 <= a)
+  q3 <- qnorm(0.75); m <- qnorm((1 + 0.5 / (1 - eps)) / 2)          # median of |X| under F_eps if |x| > m
+  if (abs(x) <= m) m <- qnorm((1 + (0.5 - eps) / (1 - eps)) / 2)
+  t0 <- (m / q3)^2; t <- t0
+  for (k in 1:iter) { a <- t * (cc + log(t0 / t)); t <- N(a) + t * (1 - D(a)) }
+  raw <- t / t1; arw <- crw * raw
+  c(raw = raw, rw = N(arw) / D(arw) / trw, t0 = t0)
+}
+cm_proxy_if <- function(x, quant = 0.99, quant_rw = 0.999) {
+  c1 <- qchisq(quant, 1); t1 <- pchisq(c1, 3) / pchisq(c1, 1); s1 <- sqrt(c1); ph1 <- dnorm(s1)
+  crw <- qchisq(quant_rw, 1); F1 <- pchisq(crw, 1); F3 <- pchisq(crw, 3); srw <- sqrt(crw); phrw <- dnorm(srw)
+  q3 <- qnorm(0.75); if_t0 <- 2 * sign(abs(x) - q3) / (4 * q3 * dnorm(q3))   # IF of the squared standardized MAD
+  num <- (x^2 <= c1) * (x^2 - t1) + t1 * ph1 * (c1 - t1) / s1 * if_t0
+  den <- (c1 - t1)^2 * ph1 / (t1 * s1) - pchisq(c1, 1)
+  if_raw <- -num / den / t1
+  kept <- x^2 <= crw
+  if_rw <- kept * (x^2 / F3 - 1 / F1) + srw * phrw * (crw * F1 - F3) / (F1 * F3) * if_raw
+  c(raw = if_raw, rw = if_rw, t0 = if_t0)
+}
