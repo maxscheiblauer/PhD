@@ -1,0 +1,6 @@
+3x4 n=1000 mean KL: MLE 0.0077
+  default  KL 0.0182 (ratio to MLE 2.37), flagged 0.0113, tr ratio 0.994
+  no_marg  KL 0.0208 (ratio to MLE 2.71), flagged 0.0099, tr ratio 1.003
+  q999     KL 0.0101 (ratio to MLE 1.32), flagged 0.0019, tr ratio 0.988
+  no_obs   KL 0.0195 (ratio to MLE 2.53), flagged 0.0130, tr ratio 0.991
+  relaxed  KL 0.0090 (ratio to MLE 1.17), flagged 0.0010, tr ratio 1.000

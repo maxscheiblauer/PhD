@@ -91,9 +91,10 @@ res["vstep_case"] <- ok(sprintf("shifted matrices trimmed: soft %d/8 (plus %d cl
                         all(!fo$v[1:8]) && all(!fh$v[1:8]) && sum(!fo$v[-(1:8)]) <= 4)
 # exact v-step: brute force over the per-observation contributions
 Xc8 <- sweep(Xo, c(1, 2), fo$M); d8 <- cm_obj_i(Xc8, fo$Sr * fo$factor, fo$Sc, fo$W, fo$lambda)
-v8 <- cm_vstep(Xc8, fo$Sr * fo$factor, fo$Sc, fo$W, fo$lambda, fo$mu, 60)
-best <- rep(TRUE, 80); cand <- order(d8 - fo$mu, decreasing = TRUE)[1:20]; best[cand[(d8 - fo$mu)[cand] > 0]] <- FALSE
-res["vstep_exact"] <- ok("v-step equals brute-force choice", identical(v8, best))
+v8 <- cm_vstep(Xc8, fo$Sr * fo$factor, fo$Sc, fo$W, fo$lambda, fo$mu, 60, 1)
+vh <- cm_vstep(Xc8, fo$Sr * fo$factor, fo$Sc, fo$W, fo$lambda, -Inf, 60); besth <- rep(TRUE, 80); besth[order(d8, decreasing = TRUE)[1:20]] <- FALSE
+d8 <- d8 - cm_mu_i(Xc8, fo$W, fo$lambda, fo$mu); best <- rep(TRUE, 80); cand <- order(d8, decreasing = TRUE)[1:20]; best[cand[d8[cand] > 0]] <- FALSE
+res["vstep_exact"] <- ok("v-step equals brute-force choice (soft and hard)", identical(v8, best) && identical(vh, besth))
 
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

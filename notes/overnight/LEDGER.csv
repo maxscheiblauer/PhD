@@ -1,4 +1,4 @@
 block,session_id,start_utc,end_utc,meter_usd,summary
 0,session_01Fi3wVb41iYFiW95fNCKQtn,2026-11-04T11:11:00Z,2026-11-04T12:53:00Z,8.00,planning session (literature dossier + overnight infrastructure); get_session 6.29 at launch; booked as PLANNING_USD=8 incl. launch overhead
 1,session_01Fi3wVbqSCX1omqYNqN5phw,2026-11-04T12:53:47Z,2026-11-04T13:12:23Z,8.5,cellMMCD defined+implemented+tested (Schur identity; exact cell step; GEM param step); benchmark: recall 1.00; KL 0.32 vs 89-144 for RJ/MMCD/MLE at 10% cells; scale factor 0.895 open
-2,session_01Fi3wVcgnq5CzuGXGF5MFJh,2026-11-04T13:13:00Z,,,launched (spent before launch ~16.78)
+2,session_01Fi3wVcgnq5CzuGXGF5MFJh,2026-11-04T13:13:00Z,2026-11-04T13:39:38Z,9.55,lambda-calibration (scale fixed point proven in proxy; tr ratio 0.98-0.99); observation step (casewise 20%: KL 0.37 vs cells-only 2.5); unboundedness theorem n-h>=n/max(p q); efficiency gap 2.4x MLE open; tests 13/13+31/31

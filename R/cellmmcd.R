@@ -56,9 +56,24 @@ cm_obj_i <- function(Xc, Sr, Sc, W, lambda) {
   }
   d
 }
+# mu: numeric constant per trimmed observation, a list (then cm_vstep's observed-cell threshold
+# mu_i is charged, which depends on W_i), or -Inf (hard quota: nothing is charged).
 cm_obj <- function(Xc, Sr, Sc, W, lambda, v = NULL, mu = 0) {
   d <- cm_obj_i(Xc, Sr, Sc, W, lambda)
-  if (is.null(v)) sum(d) else sum(d[v]) + if (is.finite(mu)) mu * sum(!v) else 0
+  if (is.null(v) || all(v)) return(sum(d))
+  if (is.list(mu)) return(sum(d[v]) + sum(cm_mu_i(Xc, W, lambda, mu)[!v]))
+  sum(d[v]) + if (is.finite(mu)) mu * sum(!v) else 0
+}
+cm_mu_i <- function(Xc, W, lambda, mu) {
+  p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
+  Or0 <- solve(mu$Sr0); Oc0 <- solve(mu$Sc0); base <- q * logdet(mu$Sr0) + p * logdet(mu$Sc0)
+  thr <- numeric(n)
+  for (i in 1:n) {
+    Mi <- which(!W[, , i]); no <- p * q - length(Mi)
+    ld <- if (length(Mi)) { K <- (Mi - 1) %% p + 1; L <- (Mi - 1) %/% p + 1; logdet(Or0[K, K, drop = FALSE] * Oc0[L, L, drop = FALSE]) } else 0
+    thr[i] <- base + ld + no * log(2 * pi) + qchisq(mu$quant, no) / mu$t_obs + no * log(mu$t_obs) + sum(lambda[Mi])
+  }
+  thr
 }
 
 # Delta_c = -2 log f(x_c | other observed cells) for cell c of one observation, with flagged set Mi
@@ -100,15 +115,23 @@ cm_wstep <- function(Xc, Sr, Sc, W, Wfix, lambda, h, v = NULL) {
 }
 
 ## ---- 3b. Observation step (block 2): exact minimisation over v given (Sigma, W) ------------
-# Trim the observations with the largest d_i - mu > 0, at most n - h_obs of them.
-# mu = -Inf gives the hard quota (classical trimmed likelihood, MMCD-type); a finite mu is the
-# observation analogue of lambda (penalised trimming, cellMCD-type).
-cm_vstep <- function(Xc, Sr, Sc, W, lambda, mu, h_obs) {
-  n <- dim(Xc)[3]
-  d <- cm_obj_i(Xc, Sr, Sc, W, lambda) - mu
+# Trim the observations with the largest d_i - mu_i > 0, at most n - h_obs of them.
+# mu = -Inf: hard quota (classical trimmed likelihood, MMCD-type). Otherwise mu is a list
+# (Sr0, Sc0, cobs, t_obs) and the threshold is evaluated on the observed cells of X_i only:
+#   mu_i = log det Sigma0_{O_i O_i} + |O_i| log 2pi + c(|O_i|) / t_obs + |O_i| log t_obs + sum lambda[M_i],
+# with c(d) = chi2_{d, quant_obs} and log det Sigma0_{OO} by the Schur identity at the initial estimate.
+# Flagged cells therefore do not count against their matrix; a matrix is trimmed when its own kept
+# cells are jointly beyond their quant_obs quantile (at the initial scale, like lambda).
+# max_flag: a kept observation may have at most this fraction of its cells flagged; matrices beyond
+# it are trimmed first (constraint on (v, W), see METHOD.md 4c).
+cm_vstep <- function(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag = 1) {
+  p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
+  d <- cm_obj_i(Xc, Sr, Sc, W, lambda)
   v <- rep(TRUE, n); budget <- n - h_obs
   if (budget <= 0) return(v)
-  cand <- which(d > 0)
+  if (is.list(mu)) { d <- d - cm_mu_i(Xc, W, lambda, mu); cand <- which(d > 0) } else cand <- seq_len(n)
+  forced <- which(apply(!W, 3, mean) > max_flag)
+  if (length(forced)) { d[forced] <- Inf; cand <- union(forced, cand) }
   if (length(cand) > budget) cand <- cand[order(d[cand], decreasing = TRUE)[1:budget]]
   v[cand] <- FALSE
   v
@@ -157,9 +180,12 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL) {
 # sits at scale ~0.90 with ~1.4 % flagged (cm_proxy_fixpt).
 # Observation trimming (block 2): alpha_obs < 1 allows up to n - ceiling(alpha_obs n) whole
 # matrices to be trimmed; quant_obs = NULL trims exactly that many (hard quota), otherwise an
-# observation is trimmed iff d_i > mu = log det Sigma_0 + pq log 2pi + c_obs with the same
-# calibration (t_obs = F_{pq+2}(c) / F_pq(c), final Sigma also divided by t_obs).
-cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99,
+# observation is trimmed iff d_i > mu_i, the quant_obs quantile of its own kept cells at the
+# initial estimate (cm_vstep), with the same calibration (t_obs = F_{pq+2}(c) / F_pq(c) at d = pq,
+# an approximation for matrices with flagged cells; final Sigma also divided by t_obs).
+# max_flag: matrices with more than this fraction of flagged cells are trimmed as a whole (they are
+# casewise outliers by any standard; a shifted matrix keeps a few unflagged cells that look fine alone).
+cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
@@ -174,12 +200,12 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   t_obs <- 1; mu <- -Inf
   if (trim_obs && !is.null(quant_obs)) {
     co <- qchisq(quant_obs, p * q); if (calib) t_obs <- pchisq(co, p * q + 2) / pchisq(co, p * q)
-    mu <- q * logdet(st$Sr) + p * logdet(st$Sc) + p * q * log(2 * pi) + co / t_obs + p * q * log(t_obs)
+    mu <- list(Sr0 = st$Sr, Sc0 = st$Sc, quant = quant_obs, t_obs = t_obs)
   }
   Sr <- st$Sr; Sc <- st$Sc; W <- Wfix; v <- rep(TRUE, n)
   obj <- numeric(0); prev <- Inf
   for (it in 1:maxit) {
-    if (trim_obs) v <- cm_vstep(Xc, Sr, Sc, W, lambda, mu, h_obs)
+    if (trim_obs) v <- cm_vstep(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag)
     nv <- sum(v); h <- ceiling(alpha * nv)
     W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v)
     f1 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)

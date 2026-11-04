@@ -1,35 +1,36 @@
 # STATE: baton between overnight blocks
 
-_Last updated: 2026-11-04 13:15 UTC by block 1 (session_01Fi3wVbqSCX1omqYNqN5phw). Each block rewrites this file at its end (PROTOCOL §6)._
+_Last updated: 2026-11-04 13:45 UTC by block 2 (session_01Fi3wVcgnq5CzuGXGF5MFJh). Each block rewrites this file at its end (PROTOCOL §6)._
 
-## Current method candidate: cellMMCD (status: implemented, tested, clearly working)
-- **Definition:** trimmed observed-cell likelihood with Kronecker Σ = Σᶜ⊗Σʳ, penalty λ_kl per flagged cell, quota of h = ⌈αn⌉ kept cells per position (the cellMCD objective with the Kronecker constraint). No imputation: the estimator is the marginal likelihood of the kept cells. Write-up `notes/cellmmcd/METHOD.md`, derivations and results `notes/cellmmcd/JOURNAL.md`.
-- **Key device (proven, tested to 1e-15):** Schur identity. log det Σ_OO = q log|Σʳ| + p log|Σᶜ| + log det Ω_MM and x_O'Σ_OO⁻¹x_O = tr(ΩʳYΩᶜY') − u'Ω_MM⁻¹u with Ω_MM the m×m matrix [Ωʳ_{k_a k_b}Ωᶜ_{l_a l_b}]. Cost per observation O(p²q + pq² + m³), m = flagged cells of that matrix.
-- **Algorithm:** start `kpair` (pairwise Kronecker: MAD scales + median polish on log s², GK correlations within rows/columns) → repeat {cell step: exact block minimisation per position with criterion Δ_ic = log(2πσ²_ic) + r²_ic vs λ_kl, budget n−h; parameter step: one flip-flop sweep of the score fixed point = GEM step}. F monotone (tested), W finite ⇒ converges. The parameter step uses conditional means only as the exact observed-data score (Fisher's identity); the journal records why no cheaper EM-free step exists. **Owner guideline 2 should be re-read in that light**: it is the plain score fixed point, cost O(pq) per observation, not O((pq)³).
-- **Results (exp/cm_step1.R, n = 100):** recall 1.00 of 6-sd cells at ε = .05–.20, false flags 1–2 %. KL at 5×5, ε = .1: cellMMCD 0.32, cellMCD-on-vec 0.59, kpair 1.5, RJ 89, MMCD 119, MLE 144. Clean: 0.37 vs MLE 0.16, mostly scale (tr ratio 0.895).
-- **Known defect:** clean-data scale ratio 0.895 (both shapes, n = 100 and 1000), 1.7 % flagged instead of 1 %: a shrink-and-flag-more loop. The 1-D factor 0.925 is not the answer (`exp/cm_step2_factor.R`).
+## Current method: cellMMCD (status: implemented, tested 13/13 + core 31/31, benchmarked cellwise, casewise and mixed)
+- **Definition** (`notes/cellmmcd/METHOD.md` §2): trimmed observed-cell likelihood with Kronecker Σ, penalty λ_kl per flagged cell, quota h = ⌈αn_v⌉ kept cells per position, **plus (block 2) observation weights v_i** with threshold μ_i on the kept cells of X_i (χ² quantile with |O_i| dof at the initial estimate), quota h_obs = ⌈α_obs n⌉, and the constraint that a kept matrix has at most half its cells flagged (`max_flag`). No imputation. Three exact/GEM blocks: v-step, cell step, parameter step. `quant_obs = NULL` gives the hard quota (MMCD-type), `alpha_obs = 1` switches observation trimming off.
+- **Scale calibration (block 2, proven in the 1-D proxy, checked numerically):** λ built from c/t₁ + log t₁ with t₁ = F₃(c)/F₁(c) = 0.925, final Σ/(t₁ t_obs). Clean-data tr ratio 0.98–0.99 (was 0.895). `cm_proxy_fixpt()` gives the fixed points.
+- **Existence (block 2, proven for data in general position):** F is unbounded below whenever n − h ≥ n/max(p,q) (so at α = .75 for max(p,q) ≥ 4). The estimator is the local minimiser from the `kpair` start; at n = 100 the descent never degenerated in any experiment, at n ≤ 12 it does (`output/cm_step5_exist.log`). Converse and a full-column remedy conjectured (JOURNAL, METHOD §4a).
+- **Results (p = q = 5, n = 100, median KL; `output/cm_step4_mixed.log`, `cm_step1.log`):** clean 0.31 (MMCD 0.18, MLE 0.16); 5 % cells 0.29 (MMCD 45); 10 % / 20 % shifted matrices 0.24 / 0.37 (MMCD 0.18 / 0.21; cells-only 0.36 / 2.48); scale ×3 0.25 / 0.28; structural 0.20 / 0.30; 10 % shifted + 5 % cells 0.25 (MMCD 51). Trims 100 % of shifted/scaled, 85–95 % of structural matrices, 0–3 % of clean ones.
+- **Known weakness:** efficiency at the Gaussian. KL ratio to the MLE 2.4 at n = 1000 (3×4) with quant = .99; 1.3 with quant = .999. Not caused by the start or by λ noise (oracle start gives the same KL). Unexplained (`output/cm_step3c_eff.log`).
 
 ## Code and tests (all passing at commit of this file)
-- `R/cellmmcd.R`: `kpair`, `cm_obj`, `cm_delta1`, `cm_wstep`, `cm_pstep`, `cellmmcd`. Loaded by `R/load.R`.
-- `tests/test_cellmmcd.R`: 8 tests (brute-force objective, brute-force cell criterion, flip-flop reduction, GEM monotonicity, full monotonicity, flags recall/fpr, beats MLE, kpair consistency). `tests/test_core.R`: 31/31.
-- `exp/cm_step1.R` (benchmark; log `output/cm_step1.log`, rds has per-rep values incl. times), `exp/cm_step2_factor.R` (`output/cm_step2_factor.log`).
-- `tools/overnight/hb.sh <status>` rewrites heartbeat.json with the meter (block number is hard-coded to 1: edit it).
+- `R/cellmmcd.R`: `kpair`, `cm_obj_i`, `cm_obj`, `cm_mu_i`, `cm_delta1`, `cm_wstep`, `cm_vstep`, `cm_pstep`, `cellmmcd`, `cm_proxy_fixpt`.
+- `tests/test_cellmmcd.R`: 13 tests (block 1's 8 + proxy fixed point, calibrated scale, three-block monotonicity, casewise detection, brute-force v-step). `tests/test_core.R`: 31/31.
+- Experiments: `exp/cm_step1.R` (cellwise benchmark, block 1, uncalibrated), `cm_step2_factor.R`, `cm_step3_calib.R`, `cm_step3b_lambda.R`, `cm_step3c_eff.R`, `cm_step4_mixed.R`, `cm_step5_exist.R`; logs under `output/`. `cm_step1` has not been rerun with the calibrated default and the observation step.
+- `tools/overnight/hb.sh <status>`: block number and session id are hard-coded (set to 2: edit for block 3).
 
 ## Prioritized next steps (concrete first actions)
-1. **Consistency factor inside the iteration.** In `cellmmcd`, before each cell step use Σ/c as the working covariance for the residuals (c = scale ratio of the kept cells), and at the end multiply by 1/c. First action: set c = 0.895 empirically, rerun `exp/cm_step2_factor.R`, check that flagged → 1 % and tr ratio → 1. Then derive c(quant) (the fixed point of the shrink-flag loop under the Kronecker conditional law), mark proven/checked.
-2. **Boundedness / existence under the quota.** Grid like FINDINGS step 10: p,q ∈ {3,5,8}, α ∈ {.5,.75}, small n; record when F → −∞ or singular Ω_MM. Conjecture: h ≥ max(p,q)+1 per position.
-3. **Casewise + cellwise contamination** (brief asks "ideally casewise too"): with α = .75 the quota allows 25 % flagged per position, so a fully bad matrix can be flagged entirely; test `gen_data(type = "obs")` and mixed. If it fails, add an observation-level trim (MMCD-style) as a third block of the same objective.
-4. **Location M**: joint update from the observed cells (score fixed point for M is the conditional-mean average); check the median plug-in effect under contamination.
-5. **Speed**: Rcpp or vectorised m = 0 case for the cell step (10 s at 10×10, n = 200 in pure R); then larger p, q timings for the complexity section.
-6. **Theory write-up**: Fisher consistency at the Gaussian for fixed λ (the shape looked consistent: shape KL 0.136 → 0.027 from n = 100 to 1000), breakdown under cellwise contamination (cellMCD paper's argument should transfer position-wise).
-7. Plots for `output/` (none yet), then `notes/cellmmcd/METHOD.md` to paper form.
+1. **Rerun the cellwise benchmark with the current default** (`Rscript exp/cm_step1.R`, ~3 min) so that METHOD §9's first table reflects the calibrated estimator with the observation step; update the table.
+2. **Efficiency at the Gaussian.** First action: in `exp/cm_step3c_eff.R` add a variant that runs the default and then one extra cell + parameter step at quant = .999 (a cellMCD-style final refinement) and a variant with `calib = FALSE` but final division by the empirical fixed point; compare the KL ratio to the MLE. Then look for the cause: compute the influence function of the proxy M-estimator, or check whether the loss is in the shape (it should not be) via `kl_shape`.
+3. **Degenerate descents at small n.** Implement a safeguard: after each cell step, for every l check the number of fully kept columns (i,l); if it is below p, unflag the cells with the smallest Δ − λ until it is p (same for rows and q). Test on `exp/cm_step5_exist.R`; record whether monotonicity is lost. Alternatively a stopping rule on log det Ω_MM.
+4. **Hard-quota variant:** apply κ(α, pq) (`kappa_mcd` in `R/matnorm.R`) to its scale and compare with the default on the step-4 grid; it is the natural bridge to MMCD and RJ.
+5. **Location M** jointly from the kept cells (score fixed point); check the median plug-in effect under 20 % shifted matrices (the median moves).
+6. **Speed**: `cm_wstep` loops in R over n·pq cells; vectorise the m = 0 case or Rcpp; then timings for p = q = 10, 20.
+7. Plots for `output/` (none yet); then METHOD.md to paper form (the counting proof deserves a clean statement).
 
 ## Open questions and pitfalls
-- λ is fixed from the `kpair` start (cellMCD convention); if the start is poor, λ is off. Consider recomputing λ once after the first parameter step (then F changes definition: document).
-- `cm_wstep` loops in R over n·pq cells; fine up to pq ≈ 100, n ≈ 200.
-- cellMCD on vec(X) prints verbosely; the benchmark now wraps it in `capture.output`.
-- Don't compare raw factors; `scale_ident(..., "det")` is applied at the end of `cellmmcd`.
-- `tff_multi(X, rule = "RJ", beta = .75)` already passes trace = FALSE; do not pass it again (silent failure of all starts).
+- Check the cellMCD paper (Raymaekers & Rousseeuw 2024, Section 2) for how they handle the unbounded objective; the counting argument applies to their objective too. arXiv/CRAN were not consulted in block 2.
+- t_obs is evaluated at d = pq for all matrices (approximation for matrices with flagged cells).
+- With `max_flag` the monotonicity of F holds only between transitions where a kept matrix crosses the bound (never observed to break in tests).
+- λ and μ_i are fixed from the `kpair` start; the oracle-start experiment shows this costs nothing at n = 1000 on clean data.
+- Don't compare raw factors; `scale_ident(..., "det")` is applied at the end of `cellmmcd`. `tff_multi(X, rule = "RJ", beta = .75)` already passes trace = FALSE.
+- `pkill -f <script>` from a Bash tool call kills the tool's own shell (matched its command line); use `pkill -f "Rscript exp/..."` with care or TaskStop.
 
 ## Files to read first
-`notes/overnight/RESEARCH_BRIEF.md`, this file, `notes/cellmmcd/JOURNAL.md`, `notes/cellmmcd/METHOD.md`, `R/cellmmcd.R`, `output/cm_step1.log`.
+`notes/overnight/RESEARCH_BRIEF.md`, this file, `notes/cellmmcd/METHOD.md`, the block-2 entries of `notes/cellmmcd/JOURNAL.md`, `R/cellmmcd.R` (sections 3b and 5), `output/cm_step4_mixed.log`, `output/cm_step3c_eff.log`.
