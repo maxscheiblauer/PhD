@@ -180,6 +180,25 @@ cm_vstep <- function(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag = 1, count_max =
   v
 }
 
+## ---- 3c. Robust flag rate for the count rule (block 5) ------------------------------------
+# The count rule (cm_vstep count_max) needs the cellwise flag rate eps_bar of the clean matrices. The
+# overall rate among kept matrices is inflated by kept casewise outliers (scaled / structural matrices
+# flag 15-40 % of their cells), which raises count_max until they pass (block 4: struct 20 % trimmed
+# only 60 %). Robust version: mean flag count over the alpha fraction of kept matrices with the fewest
+# flags, corrected for the trimming by the binomial model: under independent cellwise contamination the
+# counts are Binomial(pq, eps), and g(eps) = E[mean of the lowest alpha fraction of Bin(pq, eps)] / pq is
+# increasing, so eps_bar solves g(eps_bar) = observed lower-alpha mean / pq (uniroot). Fisher-consistent
+# for eps under the binomial model (checked, test 21), and unaffected by up to (1 - alpha) matrices.
+cm_eps_robust <- function(W, v, alpha = 0.75) {
+  pq <- prod(dim(W)[1:2]); cnt <- apply(!W[, , v, drop = FALSE], 3, sum)
+  m <- max(1, floor(alpha * length(cnt))); tm <- mean(sort(cnt)[1:m]) / pq
+  if (tm <= 0) return(0)
+  g <- function(e) { k <- qbinom(alpha, pq, e); ks <- seq_len(k) - 1
+    (sum(ks * dbinom(ks, pq, e)) + k * (alpha - pbinom(k - 1, pq, e))) / alpha / pq }
+  if (g(0.5) <= tm) return(0.5)
+  uniroot(function(e) g(e) - tm, c(0, 0.5), tol = 1e-6)$root
+}
+
 ## ---- 4. Parameter step: fixed point of the observed-data score (one flip-flop sweep) -----
 # E[X Oc X' | obs] = Xh Oc Xh' + A, A[k,k'] = sum_{a,b in M} C_ab Oc[l_a,l_b] 1[k_a=k] 1[k_b=k'],
 # with Xh the conditional mean (x_S - O_SS^{-1} T_S on S) and C = O_MM^{-1}. GEM step: F does not increase.
@@ -243,6 +262,8 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # flag_quant (block 4): adaptive majority rule. With the shadow step, a casewise outlier whose worst cells are flagged
 # can pass the kept-cell test (selection); so a kept matrix may have at most qbinom(flag_quant, pq, eps_bar) flagged
 # cells, eps_bar = current overall flag rate among the kept matrices (at least 1 - quant). NULL = off (max_flag only).
+# eps_robust (block 5): eps_bar from the alpha_obs fraction of kept matrices with the fewest flags, binomial-corrected
+# (cm_eps_robust, 3c), instead of the plain mean, which kept casewise outliers inflate. FALSE = block-4 rule.
 # shadow_it (block 4): during the first shadow_it iterations the cell step also re-decides the cells of the
 # trimmed observations (cm_wstep shadow), so that the observation step can re-admit a matrix whose cellwise
 # outliers are flagged by then. Those cells change F only through the trimmed charge mu_i(W_i), so F need
@@ -251,7 +272,7 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
                      reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, shadow_it = 10, flag_quant = 0.999,
-                     trace = FALSE) {
+                     eps_robust = TRUE, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -269,10 +290,10 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
     mu <- list(Sr0 = st$Sr, Sc0 = st$Sc, quant = quant_obs, t_obs = t_obs)
   }
   Sr <- st$Sr; Sc <- st$Sc; W <- Wfix; v <- rep(TRUE, n)
-  obj <- numeric(0); prev <- Inf; unflagged <- 0
+  obj <- numeric(0); prev <- Inf; unflagged <- 0; eps_bar <- NA; count_max <- Inf
   for (it in 1:maxit) {
     if (trim_obs) {
-      eps_bar <- max(mean(!W[, , v]), 1 - quant)
+      eps_bar <- max(if (eps_robust) cm_eps_robust(W, v, alpha_obs) else mean(!W[, , v]), 1 - quant)
       count_max <- if (is.null(flag_quant)) Inf else qbinom(flag_quant, p * q, eps_bar)
       v <- cm_vstep(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag, count_max)
     }
@@ -291,7 +312,8 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   sc <- scale_ident(Sr / fac, Sc, "det")
   fit <- list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, Wfix = Wfix, v = v, obj = obj, iter = it,
               flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
-              start = st, converged = it < maxit, tau = tau, unflagged = unflagged, shadow_it = shadow_it)
+              start = st, converged = it < maxit, tau = tau, unflagged = unflagged, shadow_it = shadow_it,
+              eps_bar = eps_bar, count_max = count_max)
   if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol) else fit
 }
 

@@ -1,0 +1,7 @@
+p = q = 5, n = 100, 10 reps. Median KL / recall / false flag rate (cells flagged or matrix trimmed) / trimmed matrices / seconds.
+none      shift 0: noshadow KL 0.202 rec NA fp 0.045 tr 0.04 0.1s | shadow KL 0.182 rec NA fp 0.008 tr 0.00 0.1s | aobs1 KL 0.185 rec NA fp 0.008 tr 0.00 0.1s | q999 KL 0.185 rec NA fp 0.008 tr 0.00 0.1s | 
+cells     shift 3: noshadow KL 0.335 rec 0.96 fp 0.238 tr 0.25 0.2s | shadow KL 0.331 rec 0.92 fp 0.006 tr 0.00 0.2s | aobs1 KL 0.307 rec 0.92 fp 0.005 tr 0.00 0.2s | q999 KL 0.306 rec 0.92 fp 0.005 tr 0.00 0.2s | 
+cells     shift 4: noshadow KL 0.297 rec 1.00 fp 0.242 tr 0.25 0.2s | shadow KL 0.259 rec 1.00 fp 0.004 tr 0.00 0.2s | aobs1 KL 0.260 rec 0.99 fp 0.003 tr 0.00 0.2s | q999 KL 0.260 rec 0.99 fp 0.004 tr 0.00 0.2s | 
+cells     shift 6: noshadow KL 0.249 rec 1.00 fp 0.024 tr 0.02 0.2s | shadow KL 0.254 rec 1.00 fp 0.003 tr 0.00 0.2s | aobs1 KL 0.254 rec 1.00 fp 0.003 tr 0.00 0.2s | q999 KL 0.255 rec 1.00 fp 0.003 tr 0.00 0.2s | 
+shiftmat  shift 5: noshadow KL 0.326 rec 1.00 fp 0.046 tr 0.23 0.1s | shadow KL 0.287 rec 1.00 fp 0.005 tr 0.20 0.2s | aobs1 KL 1.961 rec 0.67 fp 0.009 tr 0.00 0.2s | q999 KL 0.290 rec 1.00 fp 0.005 tr 0.20 0.2s | 
+mixed     shift 5: noshadow KL 0.205 rec 1.00 fp 0.044 tr 0.14 0.2s | shadow KL 0.222 rec 1.00 fp 0.004 tr 0.10 0.2s | aobs1 KL 0.384 rec 0.91 fp 0.004 tr 0.00 0.2s | q999 KL 0.218 rec 1.00 fp 0.003 tr 0.10 0.2s | 

@@ -56,6 +56,8 @@ The observation step runs before the cell step, so at the first pass only the ma
 
 **Selection and the adaptive count rule (block 4).** The shadow step alone let scaled and structural casewise outliers back in: their worst 20–45 % of cells get flagged, and the remaining (selected) cells pass the kept-cell test (scale 10 / 20 %: KL 0.23 / 0.41, struct 0.36 / 0.41; `cm_step4_mixed_shadow_only.log`). Hence a second constraint on $(v, W)$ next to the majority rule: a kept matrix may have at most $\mathrm{qbinom}(.999, pq, \bar\varepsilon)$ flagged cells, $\bar\varepsilon$ the current overall flag rate among kept matrices (at least $1 - $ quant), the count being Binomial$(pq, \bar\varepsilon)$ under independent cellwise contamination. With it (`cm_step4_mixed.log`, soft column; block 3 in parentheses): none 0.20 (0.22), 5 % cells 0.17 (0.17), shift 10 / 20 % 0.17 / 0.22 (0.18 / 0.21), scale 0.19 / 0.22 (0.19 / 0.22), struct 0.18 / 0.32 (0.19 / 0.29), mixed 0.22 (0.23); clean matrices trimmed 0 % (1–3 %). Structural outliers at 20 % remain the weak case (75 % / 60 % of them trimmed at 10 / 20 %).
 
+**Robust flag rate (block 5).** The plain $\bar\varepsilon$ is inflated by the kept casewise outliers themselves (0.023 instead of 0.013 at 20 % structural matrices, raising the cap by one). Default since block 5: $\bar\varepsilon$ is the mean flag count over the $\alpha_{obs}$ fraction of kept matrices with the fewest flags, corrected under the binomial model (`cm_eps_robust`; Fisher-consistent under independent cellwise flags, test 21; over-corrects by at most one count unit when the casewise fraction reaches $1-\alpha_{obs}$). Structural 20 %: KL 0.28, 82 % trimmed (block 4: 0.32, 60 %); everything else unchanged (clean matrices trimmed 0 % in every row). **Intrinsic limit (`cm_step12_struct.log`, JOURNAL block 5):** after flagging, structural matrices have a kept-cell excess $d_i-\mu_i \approx -19$ (clean: $-29$), so only the count rule catches them; with 5 % cellwise contamination on top, 4–5 flags are within the binomial range of the cellwise rate and they are trimmed 10–12 % (KL 1.0–1.6; hard quota 0.35–0.42; MMCD 47). A casewise outlier that looks like a cellwise-contaminated clean matrix after its worst cells are flagged is not identifiable in the cellwise paradigm (conjectured, argued in the journal).
+
 ## 5. Complexity
 Per outer iteration: cell step $O\big(n\,pq\,(m+1)^3 + n(p^2q+pq^2)\big)$, parameter step $O\big(n(p^2q + pq^2 + m^3)\big)$, with $m$ the number of flagged cells per matrix ($\approx \varepsilon pq$ under cellwise contamination). The dependence on $pq$ is linear up to the small $m$-solves, against $O(n(pq)^3)$ for cellMCD on $\operatorname{vec}X$. The cell step and the reweighting pass are in C++ since block 4 (`src/cm_wstep.cpp`, RcppArmadillo, identical results; `R/load.R` falls back to the R loops). Timing (`cm_step10_timing.log`, n = 100, 5 % cells at 6 sd, one core, default settings; the R-loop numbers in `cm_step10_timing_Rengine.log`):
 
@@ -85,7 +87,8 @@ $s_{kl} = \operatorname{MAD}_i(X_{ikl} - M_{kl})$; $\log s_{kl}^2 = a_k + b_l$ b
 | full-column constraint prevents degenerate descents | refuted numerically as a post-hoc repair (`cm_step7`) |
 | influence functions of the raw and the reweighted estimator in the 1-D proxy (§7a) | proven in the proxy; checked numerically to $10^{-4}$ (test 19) |
 | shadow cell step: convergence after at most `shadow_it` non-monotone iterations | proven (reduces to §4); monotone throughout in every run checked |
-| breakdown under cellwise contamination | open |
+| breakdown: cellwise at $1-\alpha$ per position for cells the marginal rule does not see, higher (35–40 % here) for gross cells; casewise at $1-\alpha_{obs}$ | checked numerically (`cm_step13_breakdown.log`, block 5); conjectured in general |
+| monotone formulation of the shadow phase | refuted on paper (block 5): a constant trimmed charge $\equiv$ charging flagged cells |
 
 ### 7a. Influence functions in the 1-D proxy (block 4; derivation in `JOURNAL.md`)
 One cell, residual distribution $F$, start $t_0(F)$ = squared standardized MAD, $N_F(a) = \int x^2 1(x^2\le a)\,dF$, $D_F(a) = \int 1(x^2\le a)\,dF$. The raw estimator is $T(F)/t_1$ with $T$ the fixed point of $t \mapsto N_F(a) + t(1 - D_F(a))$, $a = t(c/t_1 + \log t_1 + \log(t_0/t))$; the reweighted one is $T_{rw}(F) = N_F(a_{rw})/D_F(a_{rw})/t_{rw}$, $a_{rw} = c_{rw}T(F)/t_1$. Both are Fisher-consistent at $\Phi$, and
@@ -96,7 +99,9 @@ At quant .99 / .999: $\mathrm{IF}_{raw}(x) = [1(x^2\le c)(x^2 - 0.925) + 0.030\,
 ## 8. Open problems
 1. Degenerate descents at small $n$: the full-column repair failed (§7). Block 4 (`cm_step11_smalln.log`, 4×4 clean): 20 % of the runs degenerate at $n = 8$, 5 % at $n = 10$, none at $n \ge 12$; the operating range is stated as $n \ge 3\max(p,q)$. Still open: the right constraint or stopping rule below that, and the converse of §4a.
 2. A *monotone* consistent formulation (censored-cell objective with the cutoff region fixed at the initial estimate) instead of the reweighting device; the residual bias of the reweighted estimator at $n \to \infty$ is $\kappa(.999)^2$-small but not zero.
-2b. ~~Interplay of the two trimming steps~~: solved by the shadow cell step (§4e); what remains is a monotone formulation of the shadow phase (e.g. an objective in which a trimmed matrix is charged $\min_{W_i}$ of something sensible).
+2b. ~~Interplay of the two trimming steps~~: solved by the shadow cell step (§4e). ~~A monotone formulation of the shadow phase~~: closed negatively in block 5 (JOURNAL): any monotone charge for trimmed matrices either charges flagged cells (block-2 dead end) or disables the observation step; the shadow phase is a finite non-monotone preprocessing of $(v,W)$, the estimator the limit of the monotone descent from it.
+6. Casewise outliers that look like cellwise-contaminated clean matrices after their worst cells are flagged (structural outliers under $\ge 5$ % cellwise contamination, §4e) are not identifiable in the cellwise paradigm; the hard quota is the fallback.
+7. Breakdown: proven only numerically (§7); the per-position cellwise breakdown point $1-\alpha$ is low for a cellwise method (cellMCD has the same quota); the forced marginal flags raise it for gross cells.
 3. Joint estimation of $M$ (the median plug-in is used now).
 4. ~~Rcpp for the cell step~~ done (block 4, §5); the parameter step and the objective are next if $pq > 20$ matters.
 5. Cells that are bad *and* near their conditional mean cannot be detected (as for every cellwise method).
@@ -123,9 +128,10 @@ Recall of bad cells 0.97–1.00, false flags 0.1–0.6 % (default) / 0.4–1.7 %
 | 5 % cells | 0.17 | 0.17 | 0.37 | 45 | 63 |
 | shift 10 % / 20 % | 0.24 / 1.95 | 0.17 / 0.22 | 0.24 / 0.22 | 0.18 / 0.21 | 2.0 / 4.0 |
 | scale 10 % / 20 % | 0.30 / 0.95 | 0.19 / 0.22 | 0.30 / 0.26 | 0.20 / 0.27 | 2.9 / 9.0 |
-| struct 10 % / 20 % | 0.36 / 1.11 | 0.18 / 0.32 | 0.32 / 0.28 | 0.18 / 0.23 | 4.3 / 10.6 |
+| struct 10 % / 20 % | 0.36 / 1.11 | 0.18 / 0.28 (block 4: 0.32) | 0.32 / 0.28 | 0.18 / 0.23 | 4.3 / 10.6 |
 | shift 10 % + 5 % cells | 0.32 | 0.22 | 0.29 | 51 | 66 |
+| struct 20 % + 5 % cells (block 5; 1.0 in `cm_step12` with other seeds) | – | 1.62 | 0.42 | 48 | – |
 
-(default column rerun in block 4 with the shadow step and the count rule; the other columns are block 3's, `cm_step4_mixed_block3.log`.)
+(default column rerun in block 5 with the robust flag rate, `cm_step4_mixed.log`; block 4's run is `cm_step4_mixed_block4.log`; the other columns are block 3's, `cm_step4_mixed_block3.log`, except the new row.)
 
 The default trims every shifted or scaled matrix and 85–95 % of the structural ones, at 0–3 % of the clean ones; the hard quota always trims 25 % and is not yet scale-corrected. The clean-data gap to MMCD is now 0.22 vs 0.18 (block 2: 0.31). The clean-data gap to MMCD and the MLE is the efficiency question of §8.

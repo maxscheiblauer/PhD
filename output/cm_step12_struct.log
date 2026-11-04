@@ -1,0 +1,51 @@
+cellMMCD step 12: p = q = 5, n = 100, 10 reps; final raw fit. cnt = flagged cells per matrix, dd = d_i - mu_i.
+
+== struct case 0.10 cells 0.00, eps_robust = FALSE: median KL 0.210, trimmed bad 0.80 good 0.000, eps_bar 0.015 (range 0.010-0.025), count_max 3/4
+  bad  matrices (100): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 1 3 4 5 7 8 13; dd quantiles (.1,.5,.9): -24.4 -16.7 -7.5; trimmed 0.78; trimmed among cnt<=count_max 0.00
+  good matrices (900): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 1 1 7; dd quantiles (.1,.5,.9): -33.4 -25.3 -15.8; trimmed 0.00; trimmed among cnt<=count_max 0.00
+
+== struct case 0.10 cells 0.00, eps_robust = TRUE: median KL 0.197, trimmed bad 0.85 good 0.006, eps_bar 0.014 (range 0.010-0.019), count_max 3/4
+  bad  matrices (100): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 1 3 4 5 7 8 13; dd quantiles (.1,.5,.9): -24.4 -16.7 -7.5; trimmed 0.84; trimmed among cnt<=count_max 0.00
+  good matrices (900): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 1 1 7; dd quantiles (.1,.5,.9): -33.4 -25.3 -15.8; trimmed 0.01; trimmed among cnt<=count_max 0.00
+
+== struct case 0.20 cells 0.00, eps_robust = FALSE: median KL 0.299, trimmed bad 0.60 good 0.000, eps_bar 0.023 (range 0.010-0.028), count_max 3/4
+  bad  matrices (200): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 2 3 5 6 8 12; dd quantiles (.1,.5,.9): -28.3 -19.1 -8.5; trimmed 0.64; trimmed among cnt<=count_max 0.15
+  good matrices (800): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 0 1 4; dd quantiles (.1,.5,.9): -36.7 -28.9 -19.5; trimmed 0.00; trimmed among cnt<=count_max 0.00
+
+== struct case 0.20 cells 0.00, eps_robust = TRUE: median KL 0.294, trimmed bad 0.75 good 0.000, eps_bar 0.013 (range 0.010-0.017), count_max 3
+  bad  matrices (200): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 2.9 3 5 6 8 12; dd quantiles (.1,.5,.9): -28.5 -19.1 -9.3; trimmed 0.74; trimmed among cnt<=count_max 0.00
+  good matrices (800): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 0 1 5; dd quantiles (.1,.5,.9): -36.7 -28.9 -19.4; trimmed 0.00; trimmed among cnt<=count_max 0.00
+
+== scale case 0.20 cells 0.00, eps_robust = FALSE: median KL 0.209, trimmed bad 1.00 good 0.000, eps_bar 0.010 (range 0.010-0.015), count_max 3
+  good matrices (800): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 0 1 3; dd quantiles (.1,.5,.9): -35.5 -28 -18.2; trimmed 0.00; trimmed among cnt<=count_max 0.00
+  bad  matrices (200): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 2 6 8 10 12 15 20; dd quantiles (.1,.5,.9): -13.4 -2.3 11.1; trimmed 1.00; trimmed among cnt<=count_max 1.00
+
+== scale case 0.20 cells 0.00, eps_robust = TRUE: median KL 0.209, trimmed bad 1.00 good 0.000, eps_bar 0.010 (range 0.010-0.015), count_max 3
+  good matrices (800): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 0 1 3; dd quantiles (.1,.5,.9): -35.5 -28 -18.2; trimmed 0.00; trimmed among cnt<=count_max 0.00
+  bad  matrices (200): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 2 6 8 10 12 15 20; dd quantiles (.1,.5,.9): -13.4 -2.3 11.1; trimmed 1.00; trimmed among cnt<=count_max 1.00
+
+== none case 0.00 cells 0.00, eps_robust = FALSE: median KL 0.144, trimmed bad NA good 0.010, eps_bar 0.014 (range 0.013-0.022), count_max 3/4
+  good matrices (1000): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 1 1 4; dd quantiles (.1,.5,.9): -28.6 -21.5 -12.8; trimmed 0.01; trimmed among cnt<=count_max 0.00
+
+== none case 0.00 cells 0.00, eps_robust = TRUE: median KL 0.144, trimmed bad NA good 0.010, eps_bar 0.013 (range 0.012-0.022), count_max 3/4
+  good matrices (1000): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 0 0 1 1 4; dd quantiles (.1,.5,.9): -28.6 -21.5 -12.8; trimmed 0.01; trimmed among cnt<=count_max 0.00
+
+== none case 0.00 cells 0.05, eps_robust = FALSE: median KL 0.178, trimmed bad NA good 0.000, eps_bar 0.063 (range 0.057-0.066), count_max 6
+  good matrices (1000): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 1 1 2 3 7; dd quantiles (.1,.5,.9): -31.1 -23.2 -14.2; trimmed 0.00; trimmed among cnt<=count_max 0.00
+
+== none case 0.00 cells 0.05, eps_robust = TRUE: median KL 0.178, trimmed bad NA good 0.000, eps_bar 0.064 (range 0.054-0.070), count_max 6/7
+  good matrices (1000): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 1 1 2 3 7; dd quantiles (.1,.5,.9): -31.1 -23.2 -14.2; trimmed 0.00; trimmed among cnt<=count_max 0.00
+
+== none case 0.00 cells 0.10, eps_robust = FALSE: median KL 0.196, trimmed bad NA good 0.000, eps_bar 0.111 (range 0.107-0.118), count_max 8/9
+  good matrices (1000): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 1 2 3 4 5 8; dd quantiles (.1,.5,.9): -32.1 -25.2 -16.5; trimmed 0.00; trimmed among cnt<=count_max 0.00
+
+== none case 0.00 cells 0.10, eps_robust = TRUE: median KL 0.196, trimmed bad NA good 0.000, eps_bar 0.112 (range 0.109-0.118), count_max 8/9
+  good matrices (1000): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 1 2 3 4 5 8; dd quantiles (.1,.5,.9): -32.1 -25.2 -16.5; trimmed 0.00; trimmed among cnt<=count_max 0.00
+
+== struct case 0.20 cells 0.05, eps_robust = FALSE: median KL 1.153, trimmed bad 0.08 good 0.000, eps_bar 0.074 (range 0.065-0.080), count_max 6/7
+  good matrices (800): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 1 1 2 3 6; dd quantiles (.1,.5,.9): -36.7 -29 -19.8; trimmed 0.00; trimmed among cnt<=count_max 0.00
+  bad  matrices (200): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 2 3 4 6 7 11; dd quantiles (.1,.5,.9): -28.7 -18.8 -9; trimmed 0.10; trimmed among cnt<=count_max 0.01
+
+== struct case 0.20 cells 0.05, eps_robust = TRUE: median KL 1.022, trimmed bad 0.08 good 0.000, eps_bar 0.068 (range 0.061-0.073), count_max 6/7
+  good matrices (800): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 0 1 1 2 3 6; dd quantiles (.1,.5,.9): -36.6 -29 -19.9; trimmed 0.00; trimmed among cnt<=count_max 0.00
+  bad  matrices (200): flagged count quantiles (0,.1,.25,.5,.75,.9,1): 0 2 3 4 6 7 11; dd quantiles (.1,.5,.9): -28.7 -18.7 -8.5; trimmed 0.13; trimmed among cnt<=count_max 0.01

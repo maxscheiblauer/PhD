@@ -3,6 +3,7 @@
 # the Kronecker model with the correlation signs flipped: not marginally outlying, only relationally).
 # Mixed: 5 % cells at 6 sd plus 10 % shifted matrices. Methods: FF (MLE), cellMMCD without observation
 # trimming (cells only), cellMMCD with the penalised observation step (default), with the hard quota, MMCD.
+# Block 5: row struct 20 % + 5 % cells added (the weak case found in cm_step12); default now uses the robust flag rate.
 # Output: output/cm_step4_mixed.log, output/cm_step4_mixed.rds
 source("R/load.R"); library(parallel); set.seed(4)
 contaminate <- function(X, S, type, eps_case = 0.1, eps_cell = 0) {
@@ -33,7 +34,8 @@ one_rep <- function(seed, p, q, n, type, eps_case, eps_cell) {
 }
 grid <- rbind(data.frame(type = c("shift", "scale", "struct"), eps_case = 0.1, eps_cell = 0),
               data.frame(type = c("shift", "scale", "struct"), eps_case = 0.2, eps_cell = 0),
-              data.frame(type = "shift", eps_case = 0.1, eps_cell = 0.05), data.frame(type = "none", eps_case = 0, eps_cell = 0.05), data.frame(type = "none", eps_case = 0, eps_cell = 0))
+              data.frame(type = "shift", eps_case = 0.1, eps_cell = 0.05), data.frame(type = "none", eps_case = 0, eps_cell = 0.05), data.frame(type = "none", eps_case = 0, eps_cell = 0),
+              data.frame(type = "struct", eps_case = 0.2, eps_cell = 0.05))
 p <- q <- 5; n <- 100; R <- 10; results <- list()
 sink("output/cm_step4_mixed.log"); cat("cellMMCD step 4: p = q = 5, n = 100, 10 reps. Medians.\n")
 for (g in seq_len(nrow(grid))) {

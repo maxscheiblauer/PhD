@@ -165,5 +165,16 @@ if (isTRUE(has_cpp)) { Wc <- cm_wstep(Xc20, st20$Sr, st20$Sc, Wf20, Wf20, lam20,
                    identical(Wr, Wc) && max(abs(fr$Sr - fc$Sr)) < 1e-10 && identical(fr$W, fc$W))
 } else cat("[SKIP] C++ cell step not compiled\n")
 
+# 21 (block 5): robust flag rate. Under independent cellwise flags at rate eps the binomial-corrected lower-alpha mean
+# recovers eps (Fisher consistency, n large); 25 % of matrices with many flags do not move it; the plain mean does.
+set.seed(21); pq_e <- c(5, 5); eps_true <- 0.08; n21 <- 4000
+W21 <- array(runif(prod(pq_e) * n21) > eps_true, c(pq_e, n21)); v21 <- rep(TRUE, n21)
+e_clean <- cm_eps_robust(W21, v21, 0.75); W21b <- W21; W21b[, , 1:(n21 / 4)] <- array(runif(prod(pq_e) * n21 / 4) > 0.4, c(pq_e, n21 / 4))
+e_cont <- cm_eps_robust(W21b, v21, 0.75); e_plain <- mean(!W21b)
+res["eps_robust"] <- ok(sprintf("robust flag rate: clean %.4f (true %.2f), with 25 %% matrices at 40 %% flags: robust %.4f, plain mean %.3f",
+                                e_clean, eps_true, e_cont, e_plain), abs(e_clean - eps_true) < 0.01 && e_cont < 0.12 && e_plain > 0.15)
+# (with exactly 25 % contaminated matrices none of the clean counts is cut, so the correction over-corrects: 0.107 for 0.08,
+#  i.e. count_max one unit higher; the plain mean doubles. Exact at 0 % casewise contamination, bounded in between.)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

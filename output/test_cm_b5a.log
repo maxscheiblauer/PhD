@@ -1,0 +1,22 @@
+[PASS] objective: Schur form vs brute force, rel diff 6.0e-16
+[PASS] cell criterion: max |Delta - lambda - (F_unflag - F_flag)| = 1.5e-13
+[PASS] parameter step without flags = flip-flop step
+[PASS] parameter step with flags: F 1520.508 -> 1506.377
+[PASS] cellmmcd monotone: max increase of F = -1.7e-05 over 5 half-steps, converged = TRUE
+[PASS] flags: recall 1.00, false-positive rate 0.005
+[PASS] KL: cellMMCD 0.08, kpair start 0.62, flip-flop MLE 57.69
+[PASS] kpair n=3000: shape errors 0.017 (Sr) 0.034 (Sc), tr ratio 1.035
+[PASS] proxy fixed point: uncalibrated t* 0.905 (1.4% flagged), calibrated t* 0.9248 = t1 0.9248 (1.00% flagged)
+[PASS] clean n=600: tr ratio 0.987 (uncalibrated, 0.6% flagged) vs 1.010 (calibrated, 0.5% flagged)
+[PASS] three-block descent monotone: soft TRUE (trimmed 8), hard quota TRUE (trimmed 20 = n - h_obs 20)
+[PASS] shifted matrices trimmed: soft 8/8 (plus 0 clean), hard 8/8
+[PASS] v-step equals brute-force choice (soft and hard)
+[PASS] censored proxy fixed point at scale 1 with 1 % flagged
+[PASS] reweighting: monotone, clean flags 0.004, tr ratio 1.039, recall 1.00, raw kept
+[PASS] tail variant converges (iter 3), tau = 8.45, tr ratio 1.039
+[PASS] safeguard: 2 cells unflagged, min full cols 4 (need 3), rows 4 (need 4)
+[PASS] shadow step: trimmed 0.00 (block 3: 0.25), KL 0.156 (0.202), F monotone after the shadow phase TRUE
+[PASS] proxy IF: T(Phi) = (1.000000, 1.000000), max |numeric - formula| 2.2e-05, IF_rw(10) = 0.0055, gross-error sensitivity 9.97
+[PASS] C++ cell step: W identical TRUE (142 flags), full fits: max |Sr diff| 0.0e+00, flagged 0.093 vs 0.093
+
+20 / 20 tests passed
