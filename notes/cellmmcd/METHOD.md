@@ -71,17 +71,17 @@ $s_{kl} = \operatorname{MAD}_i(X_{ikl} - M_{kl})$; $\log s_{kl}^2 = a_k + b_l$ b
 4. Rcpp for the cell step when $pq$ is large; vectorising the $m = 0$ case.
 5. Cells that are bad *and* near their conditional mean cannot be detected (as for every cellwise method).
 
-## 9. Results so far (block 1; details in `JOURNAL.md` and `output/cm_step1.log`)
+## 9. Results so far (details in `JOURNAL.md` and `output/cm_step1.log`, rerun in block 3 with the calibrated default and the observation step)
 Median KL, n = 100, 20 reps, cells shifted by 6 sd with random sign:
 
 | ε | cellMMCD | cellMCD on vec + Kronecker | kpair | RJ | MMCD | MLE |
 |---|---|---|---|---|---|---|
-| 0 (3×4 / 5×5) | 0.17 / 0.37 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
-| .05 | 0.13 / 0.38 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
-| .10 | 0.14 / 0.32 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
-| .20 | 0.19 / 0.44 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
+| 0 (3×4 / 5×5) | 0.125 / 0.25 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
+| .05 | 0.10 / 0.25 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
+| .10 | 0.11 / 0.26 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
+| .20 | 0.13 / 0.34 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
 
-Recall of bad cells 0.99–1.00, false flags 0.8–1.9 %. These block-1 numbers are without the calibration of §4b (clean-data scale ratio 0.895 then; 0.98–0.99 now). Run time 0.1–0.7 s at n = 100 (pure R); 10 s at 10×10, n = 200.
+Recall of bad cells 0.97–1.00, false flags 0.4–1.7 %, clean-data scale ratio 0.99–1.00. Run time 0.1–0.7 s at n = 100 (pure R); 10 s at 10×10, n = 200.
 
 **Casewise and mixed contamination (block 2; `output/cm_step4_mixed.log`, p = q = 5, n = 100, 10 reps, median KL).** Casewise types on 10 % / 20 % of the matrices: shift (+5 in every cell), scale (×3), struct (flipped correlation signs).
 

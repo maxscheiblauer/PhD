@@ -96,5 +96,30 @@ vh <- cm_vstep(Xc8, fo$Sr * fo$factor, fo$Sc, fo$W, fo$lambda, -Inf, 60); besth 
 d8 <- d8 - cm_mu_i(Xc8, fo$W, fo$lambda, fo$mu); best <- rep(TRUE, 80); cand <- order(d8, decreasing = TRUE)[1:20]; best[cand[d8[cand] > 0]] <- FALSE
 res["vstep_exact"] <- ok("v-step equals brute-force choice (soft and hard)", identical(v8, best) && identical(vh, besth))
 
+## 14. (block 3) censored proxy: with tau = (1 - F3(c)) / (1 - F1(c)) and no calibration the fixed point is
+## at scale 1 with exactly 1 - quant flagged
+cq <- qchisq(0.99, 1); tau <- (1 - pchisq(cq, 3)) / (1 - pchisq(cq, 1))
+px <- cm_proxy_fixpt(0.99, calib = FALSE, tau = tau)
+res["proxy_tail"] <- ok("censored proxy fixed point at scale 1 with 1 % flagged",
+                        abs(px["t"] - 1) < 1e-6 && abs(px["flagged"] - 0.01) < 1e-6)
+
+## 15. (block 3) reweighting: fixed-W parameter steps are monotone, flags are rare on clean data, the scale is
+## calibrated, and 6-sd cells are still caught
+set.seed(15); n15 <- 150; X15 <- rmatnorm(n15, Sr = S$Sr, Sc = S$Sc)
+bad <- array(runif(p * q * n15) < 0.05, c(p, q, n15)); X15b <- X15
+X15b[bad] <- X15b[bad] + 6 * sqrt(outer(diag(S$Sr), diag(S$Sc)))[array(rep(1:(p * q), n15), c(p, q, n15))[bad]] * sign(rnorm(sum(bad)))
+f15 <- cellmmcd(X15, reweight = TRUE); f15b <- cellmmcd(X15b, reweight = TRUE)
+recall <- sum(!f15b$W & bad & array(f15b$v, c(p, q, n15), )[, , ]) / sum(bad & array(rep(f15b$v, each = p * q), c(p, q, n15)))
+res["reweight"] <- ok(sprintf("reweighting: monotone, clean flags %.3f, tr ratio %.3f, recall %.2f, raw kept",
+                              f15$flagged, tr_ratio(f15$Sr, f15$Sc, S$Sr, S$Sc), recall),
+                      all(diff(f15$obj) <= 1e-8 * abs(f15$obj[-1])) && f15$flagged < 0.02 &&
+                      abs(tr_ratio(f15$Sr, f15$Sc, S$Sr, S$Sc) - 1) < 0.15 && recall > 0.9 && !is.null(f15$raw$obj))
+
+## 16. (block 3) tail = TRUE runs and converges. It is NOT a descent on F (the parameter step is an EM step
+## for the censored objective, whose value is not computed), so only convergence and the scale are checked.
+f16 <- cellmmcd(X15, tail = TRUE)
+res["tail_runs"] <- ok(sprintf("tail variant converges (iter %d), tau = %.2f, tr ratio %.3f", f16$iter, f16$tau, tr_ratio(f16$Sr, f16$Sc, S$Sr, S$Sc)),
+                       f16$converged && f16$tau > 1 && abs(tr_ratio(f16$Sr, f16$Sc, S$Sr, S$Sc) - 1) < 0.15)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

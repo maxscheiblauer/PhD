@@ -141,7 +141,12 @@ cm_vstep <- function(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag = 1) {
 # E[X Oc X' | obs] = Xh Oc Xh' + A, A[k,k'] = sum_{a,b in M} C_ab Oc[l_a,l_b] 1[k_a=k] 1[k_b=k'],
 # with Xh the conditional mean (x_S - O_SS^{-1} T_S on S) and C = O_MM^{-1}. GEM step: F does not increase.
 # Only the kept observations (v) enter.
-cm_pstep <- function(Xc, Sr, Sc, W, v = NULL) {
+# tau (block 3): multiplies the conditional covariance C of the flagged cells in the second-moment
+# terms (not in the conditional mean). tau = 1 is EM for missing cells; tau = (1 - F3(c)) / (1 - F1(c))
+# is the second moment of a N(0,1) residual beyond its cutoff c, i.e. flagged cells are treated as
+# censored (known to be in the tail) rather than missing; in the 1-D proxy this makes the fixed point
+# Fisher-consistent without the t1 factor (cm_proxy_fixpt(tau = ...)).
+cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
   p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
   if (is.null(v)) v <- rep(TRUE, n); nv <- sum(v); keep <- which(v)
   Or <- solve(Sr); Oc <- solve(Sc)
@@ -155,7 +160,7 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL) {
       Xh[, , i][Mi] <- Xc[, , i][Mi] - C %*% Tm[Mi]
       Ek <- matrix(0, length(Mi), p); Ek[cbind(seq_along(Mi), K)] <- 1
       El <- matrix(0, length(Mi), q); El[cbind(seq_along(Mi), L)] <- 1
-      info[[i]] <- list(C = C, K = K, L = L, Ek = Ek, El = El)
+      info[[i]] <- list(C = tau * C, K = K, L = L, Ek = Ek, El = El)
     }
   }
   Sr_new <- matrix(0, p, p)
@@ -185,15 +190,21 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL) {
 # an approximation for matrices with flagged cells; final Sigma also divided by t_obs).
 # max_flag: matrices with more than this fraction of flagged cells are trimmed as a whole (they are
 # casewise outliers by any standard; a shifted matrix keeps a few unflagged cells that look fine alone).
+# tail = TRUE (block 3): censored treatment of flagged cells in the parameter step (cm_pstep tau), with
+# calib switched off (the proxy fixed point is then at scale 1 with 1 - quant flagged).
+# reweight = TRUE (block 3): after convergence, re-flag at the quant_rw quantile and refit with the flags
+# fixed (cm_reweight), the analogue of the reweighted MCD; the raw fit is returned as $raw.
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
-                     maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, trace = FALSE) {
+                     maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
+                     reweight = FALSE, quant_rw = 0.999, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
   s <- if (!is.null(st$s)) st$s else apply(Xc, c(1, 2), mad)
   Wfix <- sweep(abs(Xc), c(1, 2), s, "/") <= marg_cut
   Or <- solve(st$Sr); Oc <- solve(st$Sc)
-  cq <- qchisq(quant, 1); t1 <- if (calib) pchisq(cq, 3) / pchisq(cq, 1) else 1
+  cq <- qchisq(quant, 1); t1 <- if (calib && !tail) pchisq(cq, 3) / pchisq(cq, 1) else 1
+  tau <- if (tail) (1 - pchisq(cq, 3)) / (1 - pchisq(cq, 1)) else 1
   lambda <- cq / t1 + log(t1) + log(2 * pi) - log(outer(diag(Or), diag(Oc)))
   trim_obs <- !is.null(alpha_obs) && alpha_obs < 1
   h_obs <- if (trim_obs) ceiling(alpha_obs * n) else n
@@ -209,7 +220,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
     nv <- sum(v); h <- ceiling(alpha * nv)
     W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v)
     f1 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
-    ps <- cm_pstep(Xc, Sr, Sc, W, v); Sr <- ps$Sr; Sc <- ps$Sc
+    ps <- cm_pstep(Xc, Sr, Sc, W, v, tau); Sr <- ps$Sr; Sc <- ps$Sc
     f2 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
     obj <- c(obj, f1, f2)
     if (trace) cat(sprintf("it %d: F = %.4f (cells) %.4f (params), flagged %.3f, trimmed %d\n", it, f1, f2, mean(!W[, , v]), n - nv))
@@ -218,8 +229,47 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   }
   fac <- t1 * t_obs
   sc <- scale_ident(Sr / fac, Sc, "det")
-  list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, v = v, obj = obj, iter = it, flagged = mean(!W[, , v]),
-       trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac, start = st, converged = it < maxit)
+  fit <- list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, Wfix = Wfix, v = v, obj = obj, iter = it,
+              flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
+              start = st, converged = it < maxit, tau = tau)
+  if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol) else fit
+}
+
+## ---- 5b. Reweighting step (block 3) --------------------------------------------------------
+# Squared standardized conditional residual of cell c given the kept cells of its matrix other than c.
+cm_r2 <- function(Tf, Or, Oc, Mi, c, p) {
+  S <- c(setdiff(Mi, c), c); jc <- length(S)
+  K <- (S - 1) %% p + 1; L <- (S - 1) %/% p + 1
+  inv <- solve(Or[K, K, drop = FALSE] * Oc[L, L, drop = FALSE]); g <- inv %*% Tf[S]
+  as.numeric(g[jc]^2 / inv[jc, jc])
+}
+# Re-decide every cell of every kept matrix at the raw fit: flag iff r^2 > chi2_{1, quant_rw} (given the
+# other kept cells of the raw fit) or forced by the marginal cut; keep the observation weights v of the raw
+# fit; then run parameter steps with (v, W) fixed to the observed-cell MLE (EM, monotone); divide the scale
+# by t_rw = F3(c_rw) / F1(c_rw) (proxy calibration of the ratio estimator at cutoff c_rw) and by the raw
+# fit's t_obs. No quota is enforced in this step (as in the reweighted MCD).
+cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8) {
+  p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
+  Xc <- sweep(X, c(1, 2), fit$M); Or <- solve(fit$Sr); Oc <- solve(fit$Sc)
+  crw <- qchisq(quant_rw, 1); v <- fit$v; W <- fit$W
+  for (i in which(v)) {
+    Tf <- Or %*% Xc[, , i] %*% Oc; Mi <- which(!fit$W[, , i])
+    r2 <- vapply(1:(p * q), function(c) cm_r2(Tf, Or, Oc, Mi, c, p), 0)
+    W[, , i] <- fit$Wfix[, , i] & (r2 <= crw)
+  }
+  Sr <- fit$Sr; Sc <- fit$Sc; zero <- matrix(0, p, q); prev <- Inf; obj <- numeric(0)
+  for (it in 1:maxit) {
+    ps <- cm_pstep(Xc, Sr, Sc, W, v); Sr <- ps$Sr; Sc <- ps$Sc
+    f2 <- cm_obj(Xc, Sr, Sc, W, zero, v, 0); obj <- c(obj, f2)
+    if (abs(prev - f2) < tol * abs(f2)) break
+    prev <- f2
+  }
+  t_rw <- pchisq(crw, 3) / pchisq(crw, 1)
+  t_obs <- if (is.list(fit$mu)) fit$mu$t_obs else 1
+  sc <- scale_ident(Sr / (t_rw * t_obs), Sc, "det")
+  list(Sr = sc$Sr, Sc = sc$Sc, M = fit$M, W = W, Wfix = fit$Wfix, v = v, obj = obj, iter = it,
+       flagged = mean(!W[, , v]), trimmed = mean(!v), factor = t_rw * t_obs, converged = it < maxit,
+       raw = fit, quant_rw = quant_rw)
 }
 
 ## ---- 6. Scale fixed point of the 1-D proxy (journal, block 2) ------------------------
@@ -227,10 +277,10 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
 # constant cc (= chi2_{1,quant}, or chi2_{1,quant} / t1 + log t1 when calibrated).
 # Cell step flags iff x^2 > a(t) = t (cc + log(t0 / t)); parameter step t' = F3(a) + t (1 - F1(a)).
 # Returns the fixed point t* and the flagged fraction at t*.
-cm_proxy_fixpt <- function(quant = 0.99, calib = TRUE, t0 = 1, iter = 500) {
+cm_proxy_fixpt <- function(quant = 0.99, calib = TRUE, t0 = 1, iter = 500, tau = 1) {
   cq <- qchisq(quant, 1); t1 <- if (calib) pchisq(cq, 3) / pchisq(cq, 1) else 1
   cc <- cq / t1 + log(t1); t <- 1
-  for (k in 1:iter) { a <- t * (cc + log(t0 / t)); t <- pchisq(a, 3) + t * (1 - pchisq(a, 1)) }
+  for (k in 1:iter) { a <- t * (cc + log(t0 / t)); t <- pchisq(a, 3) + tau * t * (1 - pchisq(a, 1)) }
   a <- t * (cc + log(t0 / t))
   c(t = t, flagged = 1 - pchisq(a, 1), t1 = t1)
 }

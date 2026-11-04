@@ -1,0 +1,67 @@
+cellMMCD step 1: n = 100, 20 reps, cellwise shift outliers 6 sd. Medians (IQR in rds).
+== 3x4, eps = 0.00 ==  cellMMCD: recall NA, fpr 0.019, flagged 0.019, iter 6 (medians)
+               kl   skl    tr <NA>
+FF          0.070 0.068 1.006   NA
+kpair       0.451 0.399 1.052   NA
+cellMMCD    0.166 0.137 0.896   NA
+MMCD        0.087 0.085 1.001   NA
+RJ          0.171 0.153 0.955   NA
+cellMCD_vec 0.279 0.276 0.990   NA
+== 5x5, eps = 0.00 ==  cellMMCD: recall NA, fpr 0.022, flagged 0.022, iter 7 (medians)
+               kl   skl    tr <NA>
+FF          0.155 0.153 1.004   NA
+kpair       1.037 0.983 1.023   NA
+cellMMCD    0.366 0.275 0.901   NA
+MMCD        0.183 0.179 0.996   NA
+RJ          0.323 0.317 0.957   NA
+cellMCD_vec 0.650 0.571 0.928   NA
+== 3x4, eps = 0.05 ==  cellMMCD: recall 1.00, fpr 0.017, flagged 0.066, iter 7 (medians)
+                kl   skl    tr <NA>
+FF          26.795 2.077 7.086   NA
+kpair        0.402 0.309 1.194   NA
+cellMMCD     0.128 0.102 0.915   NA
+MMCD        14.119 2.736 4.346   NA
+RJ           1.733 0.640 1.675   NA
+cellMCD_vec  0.257 0.248 1.009   NA
+== 5x5, eps = 0.05 ==  cellMMCD: recall 1.00, fpr 0.019, flagged 0.068, iter 8 (medians)
+                kl   skl    tr <NA>
+FF          63.421 4.390 7.753   NA
+kpair        1.201 1.075 1.102   NA
+cellMMCD     0.378 0.280 0.882   NA
+MMCD        46.785 5.100 6.157   NA
+RJ           8.535 2.595 2.317   NA
+cellMCD_vec  0.633 0.631 0.966   NA
+== 3x4, eps = 0.10 ==  cellMMCD: recall 1.00, fpr 0.014, flagged 0.113, iter 9 (medians)
+                kl   skl     tr <NA>
+FF          60.792 2.471 13.332   NA
+kpair        0.777 0.445  1.354   NA
+cellMMCD     0.136 0.118  0.920   NA
+MMCD        50.295 3.379 11.217   NA
+RJ          13.991 2.299  4.408   NA
+cellMCD_vec  0.262 0.244  1.072   NA
+== 5x5, eps = 0.10 ==  cellMMCD: recall 1.00, fpr 0.015, flagged 0.113, iter 10 (medians)
+                 kl   skl     tr <NA>
+FF          144.439 5.570 14.800   NA
+kpair         1.548 0.863  1.347   NA
+cellMMCD      0.315 0.273  0.925   NA
+MMCD        118.518 5.566 12.562   NA
+RJ           88.907 9.061  9.668   NA
+cellMCD_vec   0.592 0.530  1.057   NA
+== 3x4, eps = 0.20 ==  cellMMCD: recall 1.00, fpr 0.008, flagged 0.206, iter 12 (medians)
+                 kl   skl     tr <NA>
+FF          133.500 2.904 26.022   NA
+kpair         2.328 0.426  2.026   NA
+cellMMCD      0.188 0.161  1.016   NA
+MMCD        123.240 2.867 24.246   NA
+RJ          112.935 4.852 22.156   NA
+cellMCD_vec   0.320 0.205  1.093   NA
+== 5x5, eps = 0.20 ==  cellMMCD: recall 0.99, fpr 0.011, flagged 0.208, iter 14 (medians)
+                 kl   skl     tr <NA>
+FF          307.898 6.162 28.484   NA
+kpair         4.733 1.207  1.949   NA
+cellMMCD      0.439 0.428  1.016   NA
+MMCD        289.880 6.080 26.997   NA
+RJ          288.573 8.946 26.655   NA
+cellMCD_vec   1.143 0.874  1.222   NA
+== timing: p = q = 10, n = 200, eps = .10, one run ==
+cellMMCD: 10.3 s, 19 iterations, KL 0.97 (MLE 640.30), recall 1.00, fpr 0.016
