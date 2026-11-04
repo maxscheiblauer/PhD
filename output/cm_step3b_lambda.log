@@ -1,0 +1,2 @@
+3x4 n=1000 mean KL: default 0.0173 (flagged 0.012, tr 0.996) | oracle start+lambda 0.0173 (flagged 0.012, tr 0.996) | restart from fit 0.0183 (flagged 0.013) | MLE 0.0090
+5x5 n=1000 mean KL: default 0.0376 (flagged 0.013, tr 1.000) | oracle start+lambda 0.0363 (flagged 0.012, tr 1.001) | restart from fit 0.0412 (flagged 0.013) | MLE 0.0153

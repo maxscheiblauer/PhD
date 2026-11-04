@@ -81,5 +81,19 @@ res["calib_scale"] <- ok(sprintf("clean n=600: tr ratio %.3f (uncalibrated, %.1f
                                  tr0, 100 * f0$flagged, tr1, 100 * f1$flagged),
                          abs(tr1 - 1) < 0.04 && abs(tr1 - 1) < abs(tr0 - 1) && f1$flagged < f0$flagged)
 
+## 8. Observation step (block 2): exactness, monotonicity with all three blocks, casewise detection
+set.seed(8); Xo <- rmatnorm(80, Sr = S$Sr, Sc = S$Sc); Xo[, , 1:8] <- Xo[, , 1:8] + 5   # 10 % shifted matrices
+fo <- cellmmcd(Xo); fh <- cellmmcd(Xo, quant_obs = NULL)
+res["vstep_mono"] <- ok(sprintf("three-block descent monotone: soft %s (trimmed %d), hard quota %s (trimmed %d = n - h_obs %d)",
+                                all(diff(fo$obj) <= 1e-8 * abs(fo$obj[-1])), sum(!fo$v), all(diff(fh$obj) <= 1e-8 * abs(fh$obj[-1])), sum(!fh$v), 80 - ceiling(0.75 * 80)),
+                        all(diff(fo$obj) <= 1e-8 * abs(fo$obj[-1])) && all(diff(fh$obj) <= 1e-8 * abs(fh$obj[-1])) && sum(!fh$v) == 80 - ceiling(0.75 * 80))
+res["vstep_case"] <- ok(sprintf("shifted matrices trimmed: soft %d/8 (plus %d clean), hard %d/8", sum(!fo$v[1:8]), sum(!fo$v[-(1:8)]), sum(!fh$v[1:8])),
+                        all(!fo$v[1:8]) && all(!fh$v[1:8]) && sum(!fo$v[-(1:8)]) <= 4)
+# exact v-step: brute force over the per-observation contributions
+Xc8 <- sweep(Xo, c(1, 2), fo$M); d8 <- cm_obj_i(Xc8, fo$Sr * fo$factor, fo$Sc, fo$W, fo$lambda)
+v8 <- cm_vstep(Xc8, fo$Sr * fo$factor, fo$Sc, fo$W, fo$lambda, fo$mu, 60)
+best <- rep(TRUE, 80); cand <- order(d8 - fo$mu, decreasing = TRUE)[1:20]; best[cand[(d8 - fo$mu)[cand] > 0]] <- FALSE
+res["vstep_exact"] <- ok("v-step equals brute-force choice", identical(v8, best))
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)
