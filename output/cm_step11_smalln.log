@@ -1,0 +1,7 @@
+p = q = 4, clean, 20 reps. err / degen fractions; median KL cellMMCD vs MLE; median eigenvalue-ratio product (cellMMCD, MLE); trimmed.
+n =  8: err 0.00 degen 0.20 | KL 4.283 vs MLE 1.664 | evr 4.8e-03 vs MLE 8.5e-03 | trimmed 0.00
+n = 10: err 0.00 degen 0.05 | KL 2.928 vs MLE 1.152 | evr 7.0e-03 vs MLE 9.8e-03 | trimmed 0.00
+n = 12: err 0.00 degen 0.00 | KL 2.022 vs MLE 0.864 | evr 7.9e-03 vs MLE 8.9e-03 | trimmed 0.00
+n = 16: err 0.00 degen 0.00 | KL 1.288 vs MLE 0.730 | evr 1.1e-02 vs MLE 1.0e-02 | trimmed 0.00
+n = 24: err 0.00 degen 0.00 | KL 0.669 vs MLE 0.464 | evr 1.4e-02 vs MLE 1.2e-02 | trimmed 0.00
+n = 40: err 0.00 degen 0.00 | KL 0.281 vs MLE 0.208 | evr 1.4e-02 vs MLE 1.3e-02 | trimmed 0.00

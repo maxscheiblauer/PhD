@@ -54,8 +54,19 @@ In the 1-D proxy (one cell, working scale $t$, initial scale $t_0$), the cell st
 ### 4e. Lock-in between the two trimming steps and the shadow cell step (block 4)
 The observation step runs before the cell step, so at the first pass only the marginal flags exist ($|x|/\mathrm{MAD} > 3$). With 10 % of the cells at 3–4 sd in every matrix the still-unflagged cells push more than 25 % of the matrices beyond $\mu_i$, the quota binds, and the trimmed matrices were locked out: the cell step only re-decides cells of kept matrices, so $d_i - \mu_i$ stayed positive at every later observation step (block 3 trimmed 25 % of the matrices in this setting and 4 % of the clean ones). Since the $\lambda$ terms cancel in $d_i - \mu_i$, what the trimmed matrix needs is a current $W_i$. **Shadow cell step:** during the first `shadow_it` $= 10$ iterations the cell step also re-decides the cells of the trimmed matrices by the rule $\Delta_{ic} - \lambda_{kl} > 0$ (coordinate descent on their own $d_i$, no quota); the next observation step then re-admits the matrix if its kept cells pass, while the majority rule still trims a shifted matrix (most of its cells get shadow-flagged). A trimmed matrix enters $F$ only through $\mu_i(W_i)$, so $F$ is not guaranteed monotone during the shadow phase; afterwards the iteration is that of §4 and the convergence argument applies after at most 10 non-monotone iterations (monotone in every run checked, test 18). Results (`cm_step9_interplay.log`, p = q = 5, n = 100, median KL / trimmed): clean 0.182 / 0 (block 3: 0.198 / 0.04); 10 % cells at 3 sd 0.332 / 0 (0.335 / 0.25), at 4 sd 0.259 / 0 (0.297 / 0.25); 20 % shifted matrices 0.344 / 0.20, exactly the shifted ones (0.372 / 0.23); mixed 0.222 / 0.10 (0.205 / 0.14). Alternatives rejected: no observation step (KL 1.96 at 20 % shifted matrices), `quant_obs` $= .999$ (under-trims shifted matrices, KL 0.51).
 
+**Selection and the adaptive count rule (block 4).** The shadow step alone let scaled and structural casewise outliers back in: their worst 20–45 % of cells get flagged, and the remaining (selected) cells pass the kept-cell test (scale 10 / 20 %: KL 0.23 / 0.41, struct 0.36 / 0.41; `cm_step4_mixed_shadow_only.log`). Hence a second constraint on $(v, W)$ next to the majority rule: a kept matrix may have at most $\mathrm{qbinom}(.999, pq, \bar\varepsilon)$ flagged cells, $\bar\varepsilon$ the current overall flag rate among kept matrices (at least $1 - $ quant), the count being Binomial$(pq, \bar\varepsilon)$ under independent cellwise contamination. With it (`cm_step4_mixed.log`, soft column; block 3 in parentheses): none 0.20 (0.22), 5 % cells 0.17 (0.17), shift 10 / 20 % 0.17 / 0.22 (0.18 / 0.21), scale 0.19 / 0.22 (0.19 / 0.22), struct 0.18 / 0.32 (0.19 / 0.29), mixed 0.22 (0.23); clean matrices trimmed 0 % (1–3 %). Structural outliers at 20 % remain the weak case (75 % / 60 % of them trimmed at 10 / 20 %).
+
 ## 5. Complexity
-Per outer iteration: cell step $O\big(n\,pq\,(m+1)^3 + n(p^2q+pq^2)\big)$, parameter step $O\big(n(p^2q + pq^2 + m^3)\big)$, with $m$ the number of flagged cells per matrix ($\approx \varepsilon pq$ under cellwise contamination). The dependence on $pq$ is linear up to the small $m$-solves, against $O(n(pq)^3)$ for cellMCD on $\operatorname{vec}X$. Timing in `output/cm_step1.log`.
+Per outer iteration: cell step $O\big(n\,pq\,(m+1)^3 + n(p^2q+pq^2)\big)$, parameter step $O\big(n(p^2q + pq^2 + m^3)\big)$, with $m$ the number of flagged cells per matrix ($\approx \varepsilon pq$ under cellwise contamination). The dependence on $pq$ is linear up to the small $m$-solves, against $O(n(pq)^3)$ for cellMCD on $\operatorname{vec}X$. The cell step and the reweighting pass are in C++ since block 4 (`src/cm_wstep.cpp`, RcppArmadillo, identical results; `R/load.R` falls back to the R loops). Timing (`cm_step10_timing.log`, n = 100, 5 % cells at 6 sd, one core, default settings; the R-loop numbers in `cm_step10_timing_Rengine.log`):
+
+| p = q | cellMMCD (C++) | cellMMCD (R loops) | raw / rw iterations | MMCD | MLE | KL cellMMCD / MMCD / MLE |
+|---|---|---|---|---|---|---|
+| 5 | 0.3 s | 0.8 s | 8 / 5 | 0.2 s | 0.03 s | 0.11 / 36 / 63 |
+| 10 | 0.4 s | 2.7 s | 8 / 5 | 0.8 s | 0.04 s | 0.66 / 227 / 280 |
+| 15 | 2.2 s | 12.4 s | 14 / 5 | 2.2 s | 0.10 s | 1.60 / 614 / 697 |
+| 20 | 8.6 s | 38.8 s | 15 / 5 | 4.7 s | 0.21 s | 2.84 / 1149 / 1234 |
+
+Recall 1.00 and false flags 0.4–0.5 % at every size. What remains at 20×20 is the R-level parameter step and objective (per-observation solves of $m\times m$ systems in R loops), the next candidates for C++ if larger $pq$ matters.
 
 ## 6. Initial estimator `kpair` (no iteration, no imputation)
 $s_{kl} = \operatorname{MAD}_i(X_{ikl} - M_{kl})$; $\log s_{kl}^2 = a_k + b_l$ by median polish (exact at the model because $\operatorname{var}X_{kl} = \Sigma^r_{kk}\Sigma^c_{ll}$); $\rho^r_{kk'} = \operatorname{med}_l\,\mathrm{GK}(U_{\cdot kl}, U_{\cdot k'l})$ on standardized cells, since $\operatorname{corr}(X_{kl},X_{k'l}) = \rho^r_{kk'}$ for every $l$; same for $\rho^c$; eigenvalue clipping for positive definiteness. Fisher-consistent at the Gaussian (MAD and GK with the standard constants; shape errors 0.02–0.03 at $n = 3000$, tested). Cellwise robust by construction (each statistic uses one or two positions).
@@ -83,11 +94,11 @@ $$\mathrm{IF}_{raw}(x) = -\frac{1(x^2\le c)(x^2 - t_1) + t_1\varphi(\sqrt c)\fra
 At quant .99 / .999: $\mathrm{IF}_{raw}(x) = [1(x^2\le c)(x^2 - 0.925) + 0.030\,\mathrm{IF}_{t_0}(x)]/0.733$, gross-error sensitivity 7.4, and 0.09 beyond the cutoff (only the MAD start transmits); $\mathrm{IF}_{rw}(x) pprox 1(x^2\le 10.83)(1.013x^2 - 1.001) + 0.058\,\mathrm{IF}_{raw}(x)$, gross-error sensitivity 10.0 just below $\sqrt{c_{rw}} = 3.29$, and 0.006 beyond it. The MLE has $\mathrm{IF} = x^2 - 1$. `cm_proxy_if` / `cm_proxy_T` (exact functionals under $(1-\varepsilon)\Phi + \varepsilon\delta_x$). Not covered by the proxy: the conditional variances and the other cells' flags in the Kronecker model, and the observation step.
 
 ## 8. Open problems
-1. Degenerate descents at small $n$ ($n \le 12$): the full-column repair failed (§7); find the right constraint or a stopping rule; prove or refute the converse of §4a.
+1. Degenerate descents at small $n$: the full-column repair failed (§7). Block 4 (`cm_step11_smalln.log`, 4×4 clean): 20 % of the runs degenerate at $n = 8$, 5 % at $n = 10$, none at $n \ge 12$; the operating range is stated as $n \ge 3\max(p,q)$. Still open: the right constraint or stopping rule below that, and the converse of §4a.
 2. A *monotone* consistent formulation (censored-cell objective with the cutoff region fixed at the initial estimate) instead of the reweighting device; the residual bias of the reweighted estimator at $n \to \infty$ is $\kappa(.999)^2$-small but not zero.
 2b. ~~Interplay of the two trimming steps~~: solved by the shadow cell step (§4e); what remains is a monotone formulation of the shadow phase (e.g. an objective in which a trimmed matrix is charged $\min_{W_i}$ of something sensible).
 3. Joint estimation of $M$ (the median plug-in is used now).
-4. Rcpp for the cell step when $pq$ is large; vectorising the $m = 0$ case.
+4. ~~Rcpp for the cell step~~ done (block 4, §5); the parameter step and the objective are next if $pq > 20$ matters.
 5. Cells that are bad *and* near their conditional mean cannot be detected (as for every cellwise method).
 
 ## 9. Results so far (details in `JOURNAL.md` and `output/cm_step1.log`, rerun in block 3 with the final default: calibration, observation step, reweighting; the raw-.99 run is `cm_step1_raw99.log`)
@@ -95,10 +106,12 @@ Median KL, n = 100, 20 reps, cells shifted by 6 sd with random sign:
 
 | ε | cellMMCD (default) | cellMMCD raw .99 | cellMCD on vec + Kronecker | kpair | RJ | MMCD | MLE |
 |---|---|---|---|---|---|---|---|
-| 0 (3×4 / 5×5) | 0.095 / 0.205 | 0.125 / 0.25 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
-| .05 | 0.089 / 0.187 | 0.10 / 0.25 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
-| .10 | 0.096 / 0.209 | 0.11 / 0.26 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
-| .20 | 0.145 / 0.353 | 0.18 / 0.39 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
+| 0 (3×4 / 5×5) | 0.087 / 0.198 | 0.125 / 0.25 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
+| .05 | 0.083 / 0.184 | 0.10 / 0.25 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
+| .10 | 0.094 / 0.205 | 0.11 / 0.26 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
+| .20 | 0.139 / 0.320 | 0.18 / 0.39 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
+
+(cellMMCD column rerun in block 4 with the shadow step, before the count rule, which does not act in these settings; block-3 numbers in `cm_step1_block3.log`: 0.095 / 0.205, 0.089 / 0.187, 0.096 / 0.209, 0.145 / 0.353.)
 
 Recall of bad cells 0.97–1.00, false flags 0.1–0.6 % (default) / 0.4–1.7 % (raw), clean-data scale ratio 0.99–1.00. Run time 0.1–0.7 s at n = 100 (pure R); 10 s at 10×10, n = 200.
 
@@ -106,11 +119,13 @@ Recall of bad cells 0.97–1.00, false flags 0.1–0.6 % (default) / 0.4–1.7 %
 
 | contamination | cells only | cellMMCD (default: observation step, majority rule) | hard quota | MMCD | MLE |
 |---|---|---|---|---|---|
-| none | 0.20 | 0.22 | 0.38 | 0.18 | 0.16 |
+| none | 0.20 | 0.20 | 0.38 | 0.18 | 0.16 |
 | 5 % cells | 0.17 | 0.17 | 0.37 | 45 | 63 |
-| shift 10 % / 20 % | 0.24 / 1.95 | 0.18 / 0.21 | 0.24 / 0.22 | 0.18 / 0.21 | 2.0 / 4.0 |
+| shift 10 % / 20 % | 0.24 / 1.95 | 0.17 / 0.22 | 0.24 / 0.22 | 0.18 / 0.21 | 2.0 / 4.0 |
 | scale 10 % / 20 % | 0.30 / 0.95 | 0.19 / 0.22 | 0.30 / 0.26 | 0.20 / 0.27 | 2.9 / 9.0 |
-| struct 10 % / 20 % | 0.36 / 1.11 | 0.19 / 0.29 | 0.32 / 0.28 | 0.18 / 0.23 | 4.3 / 10.6 |
-| shift 10 % + 5 % cells | 0.32 | 0.23 | 0.29 | 51 | 66 |
+| struct 10 % / 20 % | 0.36 / 1.11 | 0.18 / 0.32 | 0.32 / 0.28 | 0.18 / 0.23 | 4.3 / 10.6 |
+| shift 10 % + 5 % cells | 0.32 | 0.22 | 0.29 | 51 | 66 |
+
+(default column rerun in block 4 with the shadow step and the count rule; the other columns are block 3's, `cm_step4_mixed_block3.log`.)
 
 The default trims every shifted or scaled matrix and 85–95 % of the structural ones, at 0–3 % of the clean ones; the hard quota always trims 25 % and is not yet scale-corrected. The clean-data gap to MMCD is now 0.22 vs 0.18 (block 2: 0.31). The clean-data gap to MMCD and the MLE is the efficiency question of §8.
