@@ -280,7 +280,7 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1, loc = FALSE) {
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
                      reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, shadow_it = 10, flag_quant = 0.999,
-                     eps_robust = TRUE, loc = TRUE, trace = FALSE) {
+                     eps_robust = TRUE, loc = TRUE, quant_rw_obs = NULL, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -324,7 +324,10 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
               flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
               start = st, converged = it < maxit, tau = tau, unflagged = unflagged, shadow_it = shadow_it,
               eps_bar = eps_bar, count_max = count_max, t_obs = t_obs, loc = loc)
-  if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol) else fit
+  # quant_rw_obs (block 6): NULL = automatic (the hard quota re-decides the observation weights in the
+  # reweighting step at .99; the penalised threshold does not), FALSE = never, a number = that quantile.
+  if (is.null(quant_rw_obs)) quant_rw_obs <- if (trim_obs && is.null(quant_obs)) 0.99 else FALSE
+  if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol, quant_rw_obs = quant_rw_obs) else fit
 }
 
 ## ---- 5b. Reweighting step (block 3) --------------------------------------------------------
@@ -340,10 +343,25 @@ cm_r2 <- function(Tf, Or, Oc, Mi, c, p) {
 # fit; then run parameter steps with (v, W) fixed to the observed-cell MLE (EM, monotone); divide the scale
 # by t_rw = F3(c_rw) / F1(c_rw) (proxy calibration of the ratio estimator at cutoff c_rw) and by the raw
 # fit's t_obs. No quota is enforced in this step (as in the reweighted MCD).
-cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8) {
+# Observation reweighting (block 6, quant_rw_obs numeric; default for the hard quota): the cells of every
+# matrix (kept or trimmed) are re-decided at the raw fit; then a matrix is kept iff its kept-cell Mahalanobis
+# distance d_i^2 = x_O' Sigma_OO^{-1} x_O (Schur: x' Omega x - T_M' Omega_MM^{-1} T_M with x_M = 0) is at most
+# chi2_{|O_i|, quant_rw_obs} and its flag count passes the raw fit's count rule (count_max, max_flag 1/2); no
+# quota (the analogue of the reweighted MCD). The scale factor t_obs is then that of the soft threshold at
+# quant_rw_obs (F_{pq+2} / F_{pq} at chi2_{pq, quant_rw_obs}) instead of the raw fit's kappa.
+cm_d2_obs <- function(Xi, Or, Oc, Wi) {
+  p <- nrow(Xi); X0 <- Xi; X0[!Wi] <- 0; Tf <- Or %*% X0 %*% Oc; d2 <- sum(X0 * Tf)
+  Mi <- which(!Wi)
+  if (length(Mi)) { K <- (Mi - 1) %% p + 1; L <- (Mi - 1) %/% p + 1
+    d2 <- d2 - as.numeric(crossprod(Tf[Mi], solve(Or[K, K, drop = FALSE] * Oc[L, L, drop = FALSE], Tf[Mi]))) }
+  d2
+}
+cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8, quant_rw_obs = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   Xc <- sweep(X, c(1, 2), fit$M); Or <- solve(fit$Sr); Oc <- solve(fit$Sc)
   crw <- qchisq(quant_rw, 1); v <- fit$v; W <- fit$W
+  rw_obs <- is.numeric(quant_rw_obs) && !is.null(fit$v) && any(!fit$v)
+  if (rw_obs) v <- rep(TRUE, n)          # re-decide the cells of every matrix
   if (getOption("cellmmcd.engine", "R") == "cpp") {
     Tf <- array(0, dim(Xc)); for (i in which(v)) Tf[, , i] <- Or %*% Xc[, , i] %*% Oc
     W <- cm_reweight_cpp(Tf, Or, Oc, fit$W, fit$Wfix, crw, v)
@@ -351,6 +369,15 @@ cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8) {
     Tf <- Or %*% Xc[, , i] %*% Oc; Mi <- which(!fit$W[, , i])
     r2 <- vapply(1:(p * q), function(c) cm_r2(Tf, Or, Oc, Mi, c, p), 0)
     W[, , i] <- fit$Wfix[, , i] & (r2 <= crw)
+  }
+  t_obs <- if (is.list(fit$mu)) fit$mu$t_obs else fit$t_obs
+  if (rw_obs) {
+    d2 <- vapply(1:n, function(i) cm_d2_obs(Xc[, , i], Or, Oc, W[, , i]), 0)
+    no <- apply(W, 3, sum); nfl <- p * q - no
+    cmax <- if (is.null(fit$count_max) || !is.finite(fit$count_max)) Inf else fit$count_max
+    v <- d2 <= qchisq(quant_rw_obs, no) & nfl <= cmax & nfl <= 0.5 * p * q
+    if (sum(v) < max(p, q) + 1) v <- fit$v           # degenerate: fall back to the raw weights
+    co <- qchisq(quant_rw_obs, p * q); t_obs <- pchisq(co, p * q + 2) / pchisq(co, p * q)
   }
   Sr <- fit$Sr; Sc <- fit$Sc; zero <- matrix(0, p, q); prev <- Inf; obj <- numeric(0)
   for (it in 1:maxit) {
@@ -360,12 +387,11 @@ cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8) {
     prev <- f2
   }
   t_rw <- pchisq(crw, 3) / pchisq(crw, 1)
-  t_obs <- if (is.list(fit$mu)) fit$mu$t_obs else fit$t_obs
   sc <- scale_ident(Sr / (t_rw * t_obs), Sc, "det")
   list(Sr = sc$Sr, Sc = sc$Sc, M = fit$M, W = W, Wfix = fit$Wfix, v = v, obj = obj, iter = it,
        flagged = mean(!W[, , v]), trimmed = mean(!v), factor = t_rw * t_obs, converged = it < maxit,
        raw = fit, quant_rw = quant_rw, lambda = fit$lambda, mu = fit$mu, start = fit$start, tau = fit$tau,
-       unflagged = fit$unflagged)
+       unflagged = fit$unflagged, rw_obs = rw_obs, quant_rw_obs = quant_rw_obs, t_obs = t_obs)
 }
 
 ## ---- 6. Scale fixed point of the 1-D proxy (journal, block 2) ------------------------

@@ -85,8 +85,8 @@ res["calib_scale"] <- ok(sprintf("clean n=600: tr ratio %.3f (uncalibrated, %.1f
 set.seed(8); Xo <- rmatnorm(80, Sr = S$Sr, Sc = S$Sc); Xo[, , 1:8] <- Xo[, , 1:8] + 5   # 10 % shifted matrices
 fo <- cellmmcd(Xo); fh <- cellmmcd(Xo, quant_obs = NULL)
 res["vstep_mono"] <- ok(sprintf("three-block descent monotone: soft %s (trimmed %d), hard quota %s (trimmed %d = n - h_obs %d)",
-                                all(diff(fo$obj) <= 1e-8 * abs(fo$obj[-1])), sum(!fo$v), all(diff(fh$obj) <= 1e-8 * abs(fh$obj[-1])), sum(!fh$v), 80 - ceiling(0.75 * 80)),
-                        all(diff(fo$obj) <= 1e-8 * abs(fo$obj[-1])) && all(diff(fh$obj) <= 1e-8 * abs(fh$obj[-1])) && sum(!fh$v) == 80 - ceiling(0.75 * 80))
+                                all(diff(fo$obj) <= 1e-8 * abs(fo$obj[-1])), sum(!fo$v), all(diff(fh$obj) <= 1e-8 * abs(fh$obj[-1])), sum(!fh$raw$v), 80 - ceiling(0.75 * 80)),
+                        all(diff(fo$obj) <= 1e-8 * abs(fo$obj[-1])) && all(diff(fh$obj) <= 1e-8 * abs(fh$obj[-1])) && sum(!fh$raw$v) == 80 - ceiling(0.75 * 80))
 res["vstep_case"] <- ok(sprintf("shifted matrices trimmed: soft %d/8 (plus %d clean), hard %d/8", sum(!fo$v[1:8]), sum(!fo$v[-(1:8)]), sum(!fh$v[1:8])),
                         all(!fo$v[1:8]) && all(!fh$v[1:8]) && sum(!fo$v[-(1:8)]) <= 4)
 # exact v-step: brute force over the per-observation contributions
@@ -179,8 +179,18 @@ res["eps_robust"] <- ok(sprintf("robust flag rate: clean %.4f (true %.2f), with 
 # 22 (block 5): hard quota with the MCD consistency factor: clean-data scale ratio near 1 (block 4: 0.87 without it).
 set.seed(22); S22 <- true_sigma(4, 4, "full"); X22 <- rmatnorm(400, Sr = S22$Sr, Sc = S22$Sc)
 fh <- cellmmcd(X22, quant_obs = NULL); tr22 <- tr_ratio(fh$Sr, fh$Sc, S22$Sr, S22$Sc)
-res["hard_kappa"] <- ok(sprintf("hard quota: trimmed %.2f, factor t_obs %.3f (kappa %.3f), clean scale ratio %.3f", fh$trimmed, fh$raw$t_obs, kappa_mcd(0.75, 16), tr22),
-                        abs(fh$trimmed - 0.25) < 0.01 && abs(tr22 - 1) < 0.06)
+fh0 <- cellmmcd(X22, quant_obs = NULL, quant_rw_obs = FALSE); tr22_0 <- tr_ratio(fh0$Sr, fh0$Sc, S22$Sr, S22$Sc)
+res["hard_kappa"] <- ok(sprintf("hard quota (raw weights): trimmed %.2f, factor t_obs %.3f (kappa %.3f), clean scale ratio %.3f", fh0$trimmed, fh0$raw$t_obs, kappa_mcd(0.75, 16), tr22_0),
+                        abs(fh0$trimmed - 0.25) < 0.01 && abs(tr22_0 - 1) < 0.06)
+# 24 (block 6): observation reweighting of the hard quota (default): the raw fit keeps the quota, the reweighted
+# fit trims only the matrices failing the kept-cell test at .99 (a few percent on clean data), scale ratio near 1,
+# and the kept-cell distance helper agrees with the brute-force Sigma_OO inverse.
+Wt <- fh$W[, , 1]; Wt[c(2, 7)] <- FALSE; Om <- kronecker(solve(fh$Sc), solve(fh$Sr)); Sg <- solve(Om); O <- which(as.vector(Wt))
+xo <- as.vector(X22[, , 1] - fh$M)[O]; d2_bf <- as.numeric(crossprod(xo, solve(Sg[O, O], xo)))
+d2_h <- cm_d2_obs(X22[, , 1] - fh$M, solve(fh$Sr), solve(fh$Sc), Wt)
+res["hard_rw"] <- ok(sprintf("reweighted hard quota: raw trimmed %.2f, reweighted trimmed %.3f, scale ratio %.3f, d2 helper vs brute force %.1e",
+                             fh$raw$trimmed, fh$trimmed, tr22, abs(d2_h - d2_bf)),
+                     abs(fh$raw$trimmed - 0.25) < 0.01 && fh$trimmed < 0.06 && abs(tr22 - 1) < 0.06 && abs(d2_h - d2_bf) < 1e-8)
 
 # 23 (block 5): joint location. Clean 4x4, n = 200, true M = 2: the EM location is closer to M than the cellwise median,
 # F stays monotone after the shadow phase, and the fit with loc = FALSE is unchanged by the new argument.

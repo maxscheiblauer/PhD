@@ -1,0 +1,61 @@
+cellMMCD step 16 (block 6): reweighted hard quota. p = q = 5, n = 100, 10 reps. Medians.
+
+== case shift 0.10, cells 0.00 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.160 0.153 0.984        1     0.000          NA     0.003 0.201
+hard_raw 0.232 0.221 1.028        1     0.167          NA     0.010 0.304
+hard_rw  0.160 0.155 0.982        1     0.011          NA     0.003 0.304
+
+== case scale 0.10, cells 0.00 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.194 0.183 0.972        1     0.000          NA     0.005 0.257
+hard_raw 0.247 0.240 1.016        1     0.167          NA     0.009 0.365
+hard_rw  0.186 0.174 0.978        1     0.000          NA     0.004 0.365
+
+== case struct 0.10, cells 0.00 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.195 0.183 0.966      0.8     0.000          NA     0.006 0.271
+hard_raw 0.253 0.236 0.997      1.0     0.167          NA     0.012 0.272
+hard_rw  0.178 0.174 0.974      0.7     0.011          NA     0.006 0.272
+
+== case shift 0.20, cells 0.00 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.174 0.172 0.986        1     0.000          NA     0.003 0.250
+hard_raw 0.224 0.192 1.083        1     0.062          NA     0.006 0.313
+hard_rw  0.171 0.167 0.992        1     0.000          NA     0.002 0.313
+
+== case scale 0.20, cells 0.00 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.221 0.215 0.988        1     0.000          NA     0.004 0.323
+hard_raw 0.310 0.236 1.087        1     0.062          NA     0.005 0.313
+hard_rw  0.238 0.215 0.994        1     0.000          NA     0.003 0.313
+
+== case struct 0.20, cells 0.00 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.230 0.210 0.996    0.825     0.000          NA     0.007 0.228
+hard_raw 0.263 0.252 1.071    0.950     0.075          NA     0.010 0.231
+hard_rw  0.236 0.222 1.001    0.700     0.000          NA     0.007 0.231
+
+== case shift 0.10, cells 0.05 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.222 0.203 0.976        1     0.000       0.976     0.003 0.265
+hard_raw 0.265 0.257 1.038        1     0.167       0.976     0.004 0.336
+hard_rw  0.230 0.224 0.978        1     0.011       0.968     0.002 0.336
+
+== case none 0.00, cells 0.05 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.177 0.171 0.968       NA      0.00           1     0.007 0.257
+hard_raw 0.292 0.287 1.005       NA      0.25           1     0.009 0.355
+hard_rw  0.194 0.176 0.966       NA      0.01           1     0.006 0.355
+
+== case none 0.00, cells 0.00 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.190 0.177 0.971       NA      0.00          NA     0.008 0.319
+hard_raw 0.275 0.273 0.983       NA      0.25          NA     0.016 0.365
+hard_rw  0.200 0.185 0.973       NA      0.01          NA     0.008 0.365
+
+== case struct 0.20, cells 0.05 ==
+            kl   skl    tr trim_bad trim_good cell_recall flag_good  Merr
+soft     0.794 0.628 1.194    0.125     0.000       0.824     0.002 0.345
+hard_raw 0.316 0.292 1.117    0.825     0.106       0.848     0.003 0.386
+hard_rw  0.353 0.328 1.070    0.400     0.006       0.828     0.003 0.386

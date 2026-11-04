@@ -1,0 +1,16 @@
+Clean 3x4 full shape, 4 seeds, block-6 code. Mean KL, n*KL, shape KL, flagged, trimmed, tr ratio, n*|M|^2, seconds per fit.
+n =   500  MLE: KL 0.01772  n*KL 8.86
+   default  KL 0.01661 (ratio 0.94) n*KL   8.30  shape 0.01647  flagged 0.0044  trimmed 0.0055  tr 0.999  n|M|^2 12.56  0s
+   nloc     KL 0.01636 (ratio 0.92) n*KL   8.18  shape 0.01626  flagged 0.0043  trimmed 0.0055  tr 1.002  n|M|^2 16.45  0s
+   hard_rw  KL 0.01745 (ratio 0.98) n*KL   8.72  shape 0.01720  flagged 0.0050  trimmed 0.0045  tr 0.998  n|M|^2 24.55  0s
+   hard_raw KL 0.04206 (ratio 2.37) n*KL  21.03  shape 0.04127  flagged 0.0012  trimmed 0.2500  tr 1.011  n|M|^2 24.55  0s
+n =  2000  MLE: KL 0.00371  n*KL 7.43
+   default  KL 0.00398 (ratio 1.07) n*KL   7.96  shape 0.00391  flagged 0.0038  trimmed 0.0055  tr 0.998  n|M|^2 9.88  1s
+   nloc     KL 0.00377 (ratio 1.01) n*KL   7.54  shape 0.00367  flagged 0.0037  trimmed 0.0052  tr 1.000  n|M|^2 11.44  1s
+   hard_rw  KL 0.00411 (ratio 1.11) n*KL   8.22  shape 0.00405  flagged 0.0039  trimmed 0.0051  tr 0.999  n|M|^2 12.18  1s
+   hard_raw KL 0.00779 (ratio 2.10) n*KL  15.59  shape 0.00724  flagged 0.0007  trimmed 0.2500  tr 1.013  n|M|^2 12.18  1s
+n =  8000  MLE: KL 0.00073  n*KL 5.88
+   default  KL 0.00093 (ratio 1.26) n*KL   7.42  shape 0.00087  flagged 0.0034  trimmed 0.0048  tr 0.996  n|M|^2 7.81  6s
+   nloc     KL 0.00091 (ratio 1.24) n*KL   7.27  shape 0.00086  flagged 0.0034  trimmed 0.0049  tr 0.997  n|M|^2 13.66  5s
+   hard_rw  KL 0.00103 (ratio 1.41) n*KL   8.27  shape 0.00092  flagged 0.0036  trimmed 0.0055  tr 0.994  n|M|^2 14.44  4s
+   hard_raw KL 0.00202 (ratio 2.76) n*KL  16.19  shape 0.00179  flagged 0.0007  trimmed 0.2500  tr 1.009  n|M|^2 14.44  4s
