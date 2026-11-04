@@ -1,6 +1,6 @@
 # cellMMCD: a cellwise robust estimator of Kronecker-structured covariances
 
-_Paper draft, block 7 (2026-11-04). Assembled from `METHOD.md` (§0 and the sections it cites), `JOURNAL.md` and the logs in `output/`. Every number below has a log; every theoretical claim carries its status: **proven**, **checked** (numerically) or **conjectured**. Open points for the owner are marked ▸._
+_Paper draft, blocks 7–8 (2026-11-04). Assembled from `METHOD.md` (§0 and the sections it cites), `JOURNAL.md` and the logs in `output/`. Every number below has a log; every theoretical claim carries its status: **proven**, **checked** (numerically) or **conjectured**. Open points for the owner are marked ▸._
 
 ## 1. Setting and aim
 Matrix observations $X_i\in\mathbb R^{p\times q}$, $i=1,\dots,n$, with $\operatorname{vec}(X_i)\sim N(\operatorname{vec}M,\ \Sigma^c\otimes\Sigma^r)$ at the model. Some cells are replaced by arbitrary values (cellwise contamination); some whole matrices may be replaced (casewise). The aim is an estimator of $(M,\Sigma^r,\Sigma^c)$ that (i) does not impute flagged cells, (ii) keeps the Kronecker structure in the fit and not only in a post-hoc projection, (iii) is robust to cellwise and, as far as possible, casewise outliers, and (iv) runs in time linear in $pq$ per matrix. $\Sigma^r$ is identified by $\det\Sigma^r = 1$; estimators are compared through $\Sigma^c\otimes\Sigma^r$ (KL divergence to the truth), never through the raw factors.
@@ -35,7 +35,7 @@ Start: `kpair`, a pairwise Kronecker estimate from position medians, MADs (media
 | claim | status |
 |---|---|
 | Schur form, exactness of the cell and observation steps, GEM parameter step, monotone $F$ | proven, tested |
-| $F$ unbounded below under the quota alone when $n-h\ge(n-p+1)/\max(p,q)$ (adversarial kept patterns); general criterion: unbounded iff between 1 and $\lvert T\rvert-1$ kept $T$-partial columns for some row set $T$ (or rows) | "if" proven (Prop. A); "only if" conjectured (C); factor-wise coercivity under $p$ fully kept columns proven (Prop. B); criterion held in every run checked |
+| $F$ unbounded below under the quota alone when $n-h\ge(n-p+1)/\max(p,q)$ (adversarial kept patterns); more generally whenever some row set $T$ has between 1 and $\lvert T\rvert-1$ kept $T$-partial columns (or rows) | proven (Prop. A); the converse is **false** ($2\times2$ counterexample with both factors degenerating together, block 8), so the exact existence criterion for the joint problem is open; factor-wise coercivity under $p$ fully kept columns / $q$ fully kept rows proven (Prop. B); the Prop.-A criterion held in every run checked (`cm_check_pattern`) |
 | scale calibration $t_1$ | proven (1-D proxy), checked |
 | raw estimator biased in shape at the Gaussian: $\Sigma-\kappa\operatorname{diag}(1/\Omega_{cc})$, $\kappa=F_1(c)-F_3(c)=0.0745$ | proven to first order; iterated map 0.0111 vs observed 0.0115 |
 | reweighted estimator consistent: $n\cdot$KL 8.3 / 8.0 / 7.4 at $n$ = 500 / 2000 / 8000 (MLE 8.9 / 7.4 / 5.9) | checked |
@@ -60,7 +60,7 @@ shift 20 % 0.20 / 0.11 [0.21 / 0.11] (0.21 / 0.15); scale 20 % 0.21 / 0.10 [0.24
 
 **Location.** With the EM step the squared error of $M$ halves on every case; the cellwise median breaks at 20 % shifted matrices (3.0 vs 0.3).
 
-Figures: `cm_fig_breakdown.png`, `cm_fig_if.png`, `cm_fig_mixed.png`, `cm_fig_timing.png`, `cm_fig_sc.png`, `cm_step6_bias.png`.
+Figures: `cm_fig_breakdown.png`, `cm_fig_if.png`, `cm_fig_mixed.png`, `cm_fig_timing.png`, `cm_fig_sc.png`, `cm_fig_casebreak.png` (median KL against the casewise fraction for the three observation rules, shifted and structural matrices; `exp/cm_plot_casebreak.R`), `cm_step6_bias.png`.
 
 ## 6. Limits and open problems
 1. **Existence.** The "only if" of the configuration criterion (multi-rate degenerations, scale migrating between the factors); a worst-case bound on $n-h$ that guarantees it cannot exist (§4a), so the statement stays local.
@@ -71,4 +71,4 @@ Figures: `cm_fig_breakdown.png`, `cm_fig_if.png`, `cm_fig_mixed.png`, `cm_fig_ti
 6. **Speed beyond 30×30**: the $\bar m^2pq$ term of the cell step; `kpair` and the R-level parameter step are the next candidates.
 
 ## 7. Reproducibility
-`R/cellmmcd.R` (driver `cellmmcd`, `kpair`, `cm_reweight`), `src/cm_wstep.cpp`; tests `tests/test_cellmmcd.R` (25) and `tests/test_core.R` (31); experiments `exp/cm_step*.R` with seeds in the header; logs and figures in `output/`.
+`R/cellmmcd.R` (driver `cellmmcd`, `kpair`, `cm_reweight`, pattern check `cm_check_pattern`), `src/cm_wstep.cpp`; tests `tests/test_cellmmcd.R` (26) and `tests/test_core.R` (31); experiments `exp/cm_step*.R` with seeds in the header; logs and figures in `output/`.
