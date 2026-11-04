@@ -25,3 +25,4 @@ output/*.rds
 # Literature PDFs (large, copyrighted); the reports and reference list are tracked
 references/*.pdf
 output/*.err
+output/setup.log
