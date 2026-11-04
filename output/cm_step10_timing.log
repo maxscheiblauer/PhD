@@ -2,3 +2,4 @@ n = 100, 5 % cells at 6 sd. Seconds (elapsed, 1 core) / KL to truth / raw iterat
 p = q =  5: cellMMCD     0.4s KL 0.098 (raw it 11, rw it 5, recall 1.00, fp 0.005) | hard rw     0.1s KL 0.105 | MMCD    0.2s KL 35.709 | MLE  0.03s KL 63.070
 p = q = 10: cellMMCD     0.5s KL 0.612 (raw it 11, rw it 5, recall 1.00, fp 0.004) | hard rw     0.4s KL 0.616 | MMCD    0.8s KL 226.708 | MLE  0.01s KL 280.084
 p = q = 15: cellMMCD     2.5s KL 1.553 (raw it 17, rw it 5, recall 1.00, fp 0.004) | hard rw     1.8s KL 1.595 | MMCD    2.2s KL 614.221 | MLE  0.02s KL 696.677
+p = q = 20: cellMMCD     8.1s KL 2.887 (raw it 14, rw it 5, recall 1.00, fp 0.005) | hard rw     8.2s KL 3.027 | MMCD    4.7s KL 1148.521 | MLE  0.04s KL 1233.589

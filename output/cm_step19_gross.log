@@ -1,0 +1,25 @@
+Gross cells (1000 sd) at exactly eps*n per position, 3x4, n = 100, 5 reps. Medians.
+
+== eps = 0.20 ==
+              kl    tr trimmed recall    fp
+default    0.076 0.970       0      1 0.001
+cells_only 0.073 0.953       0      1 0.001
+hard_rw    0.081 0.958       0      1 0.001
+
+== eps = 0.30 ==
+              kl    tr trimmed recall fp
+default    0.175 1.018    0.03      1  0
+cells_only 0.178 1.009    0.00      1  0
+hard_rw    0.203 1.006    0.03      1  0
+
+== eps = 0.40 ==
+              kl    tr trimmed recall    fp
+default    0.190 0.975    0.17      1 0.001
+cells_only 0.202 1.002    0.00      1 0.001
+hard_rw    0.142 0.978    0.17      1 0.001
+
+== eps = 0.45 ==
+              kl    tr trimmed recall    fp
+default    0.253 1.001    0.25      1 0.002
+cells_only 0.209 1.017    0.00      1 0.000
+hard_rw    0.294 0.994    0.27      1 0.000
