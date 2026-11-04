@@ -200,5 +200,12 @@ oj <- fj$raw$obj; mono <- all(diff(oj[-(1:(2 * fj$raw$shadow_it))]) <= 1e-8 * ab
 res["loc_joint"] <- ok(sprintf("joint location: squared error %.4f (median plug-in %.4f), F monotone after the shadow phase %s, KL %.3f vs %.3f",
                                e_j, e_m, mono, kl_mn(fj$Sr, fj$Sc, S23$Sr, S23$Sc), kl_mn(fm$Sr, fm$Sc, S23$Sr, S23$Sc)), e_j < e_m && mono)
 
+# 25 (block 6): the cached-inverse C++ cell step (bordering / downdate of Omega_MM^{-1}) gives exactly the flags of
+# the original C++ routine (kept as cm_wstep_cpp0), including the shadow pass, on the 20x20 instance of test 20.
+if (isTRUE(has_cpp)) { Or20 <- solve(st20$Sr); Oc20 <- solve(st20$Sc); Tf20 <- array(0, dim(Xc20)); for (i in seq_len(dim(Xc20)[3])) Tf20[, , i] <- Or20 %*% Xc20[, , i] %*% Oc20
+  W0 <- Wf20; set.seed(25); W0[sample(length(W0), round(0.1 * length(W0)))] <- FALSE
+  Wn <- cm_wstep_cpp(Tf20, Or20, Oc20, W0, Wf20, lam20, 60L, v20, TRUE); Wo <- cm_wstep_cpp0(Tf20, Or20, Oc20, W0, Wf20, lam20, 60L, v20, TRUE)
+  res["cpp_cache"] <- ok(sprintf("cached-inverse cell step identical to the original: %s (%d flags)", identical(Wn, Wo), sum(!Wn)), identical(Wn, Wo)) }
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)
