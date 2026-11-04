@@ -349,3 +349,40 @@ then **no $(a,b)$-path is a descent direction**: $F(\delta)\to+\infty$ along eve
 **What is still open for "F bounded below".** Degenerations outside the $(a,b)$ family: kernels of dimension $\ge2$, unequal rates ($\delta^\gamma$) in the two factors, non-identity behaviour on the complements, and sequences in which the eigenvectors rotate so that $y'v(\delta) = O(\delta)$ although $y\not\perp\lim v(\delta)$ (then $\log\delta^2+O(1)\to-\infty$ with a non-orthogonal $y$). The stratum criterion is therefore a proven necessary condition on *this* family of descents, and the full converse (F bounded below iff no stratum is violating) stays **conjectured**.
 
 **Practical consequence (proven from Prop. D).** On the top stratum $([p],[q])$ a matrix with $m_i$ flagged cells has $\operatorname{comp}(\Gamma_i)\ge p+q-m_i$, hence $\dim N_i\ge(p+q-1-m_i)_+$: one fully kept matrix alone defeats every two-factor stratum, and any matrix with fewer than $p+q-1$ flagged cells contributes. With $c_{[p]}\ge p$ and $d_{[q]}\ge q$ (block 7's Prop. B condition) and, for each $(T,U)$, enough matrices with few flags in $T\times U$, the Corollary applies. **Random contamination regime (remark):** with cell contamination rate $\varepsilon$, the expected number of fully kept columns is $nq(1-\varepsilon)^p$, so Prop. A *fires* (and $F$ is provably unbounded below) once $nq(1-\varepsilon)^p$ falls between $1$ and $p-1$ for the top row set; e.g. $n = 100$: $20\times20$ is safe up to $\varepsilon\approx0.2$ and violated at $0.25$; $40\times40$ is safe at $\varepsilon = 0.05$ ($514$ full columns) and violated from $\varepsilon\approx0.1$ on. Checked in result 4.
+
+### Result 3 (checked numerically): `exp/cm_step26_strata.R`, `output/cm_step26_strata.log`
+**(a)** Prop. D against the nullity of $G_0$ on 40 random patterns ($p,q\le4$, random strata including one-factor ones): 40 / 40 agree; test 27 also checks the explicit basis ($P_0B = 0$, full rank, supported on the kept cells). **(b)** Slopes of $F$ against $\log\delta$ between $\delta = 10^{-3}$ and $10^{-6}$: $2\times2$ cross pattern 0.985 ($\nu = 1$), step-25 pattern 0.978 ($\nu = 1$), $2\times2$ fully kept with $y = a_\perp b_\perp^\prime$ 4.000 ($\nu = 4$, the $\delta^2$ mode); the $(a,b)$ were found by least squares on the orthogonality system (residual $<10^{-20}$). **(c) Conjecture C″ as first stated is false on the strata $|T| = 1$ or $|U| = 1$:** there the null vectors of Prop. D are single kept cells ($w\propto e_{kl}$: with $a = e_k$ the whole row $k$ has variance $\to0$), the "orthogonality" would force $y_{kl} = 0$, and $F\to+\infty$ (the first run found such a pattern: count 1, need 2, residual 1.9, $F$ increasing by $2\cdot10^6$ along the path). `cm_check_strata` now skips these strata whenever row $k$ (column $l$) has a kept cell in some kept matrix (proven safe: a kept cell with vanishing variance makes the term $+\infty$). After that, among $3\times40$ random $3\times3$ patterns (kept probability 0.55, $n = 2,3,4$) the classification is:
+```
+(c) Conjecture C'' on random 3x3 patterns (kept prob .55; 40 patterns per n):
+  n=2: Prop. A fires 38, cross-only 0, silent 2
+  n=3: Prop. A fires 39, cross-only 0, silent 1
+  n=4 pattern 15: worst stratum T={123} U={123} count 4 need 5; (a,b) resid 2.9e-17 full FALSE; slope -1413902.031 (nu 4; control slope -2170495)
+  n=4 pattern 16: worst stratum T={123} U={123} count 4 need 5; (a,b) resid 1.7e-29 full FALSE; slope -1048886.643 (nu 4; control slope -311313)
+  n=4: Prop. A fires 30, cross-only 2, silent 8
+
+```
+So on tiny random patterns Prop. A almost always fires already, and no two-factor-only violation with $|T|,|U|\ge2$ appeared; the sufficiency of the count on those strata remains **conjectured** (checked only on the constructed examples of (b)). **(d)** Algorithm-produced patterns (default `cellmmcd`; the count stops at `need`, so slack 0 means safe):
+```
+(d) algorithm-produced patterns (default cellmmcd), worst stratum over all (T,U):
+  3x3 n=  6 eps=0.00 seed 2401: kept matrices 5, c_full 14, d_full 14, viol_A 0, viol_cross 0, min slack 0 (T={123} U={123} count 5 need 5), 0.0 s
+  3x3 n=  6 eps=0.00 seed 2402: kept matrices 5, c_full 13, d_full 13, viol_A 0, viol_cross 0, min slack 0 (T={12} U={123} count 4 need 4), 0.0 s
+  3x3 n=  6 eps=0.00 seed 2403: kept matrices 5, c_full 12, d_full 11, viol_A 0, viol_cross 0, min slack 0 (T={123} U={123} count 5 need 5), 0.0 s
+  4x4 n= 12 eps=0.00 seed 2601: kept matrices 12, c_full 24, d_full 29, viol_A 0, viol_cross 0, min slack 0 (T={123} U={1234} count 6 need 6), 0.0 s
+  4x4 n= 12 eps=0.00 seed 2602: kept matrices 12, c_full 35, d_full 36, viol_A 0, viol_cross 0, min slack 0 (T={1234} U={1234} count 7 need 7), 0.0 s
+  5x5 n= 15 eps=0.00 seed 2611: kept matrices 15, c_full 36, d_full 23, viol_A 0, viol_cross 0, min slack 0 (T={12} U={125} count 4 need 4), 0.0 s
+  5x5 n= 15 eps=0.00 seed 2612: kept matrices 15, c_full 65, d_full 67, viol_A 0, viol_cross 0, min slack 0 (T={1234} U={12345} count 8 need 8), 0.0 s
+  5x5 n=100 eps=0.20 seed 2621: kept matrices 97, c_full 158, d_full 158, viol_A 0, viol_cross 0, min slack 0 (T={12} U={12345} count 6 need 6), 0.0 s
+  5x5 n=100 eps=0.20 seed 2622: kept matrices 88, c_full 145, d_full 151, viol_A 0, viol_cross 0, min slack 0 (T={12} U={1234} count 5 need 5), 0.0 s
+
+```
+**(e) Random-contamination regime (new operating limit).** Expected fully kept columns $nq(1-\varepsilon)^p$ at $n = 100$ and the fitted $20\times20$ patterns:
+```
+(e) random-contamination regime: expected fully kept columns n q (1-eps)^p vs p (n = 100), and fitted 20x20 patterns:
+  p=q= 5: eps .05   386.9 | .10   295.2 | .20   163.8 | .25   118.7   (needs 0 or >= 5)
+  p=q= 8: eps .05   530.7 | .10   344.4 | .20   134.2 | .25    80.1   (needs 0 or >= 8)
+  p=q=20: eps .05   717.0 | .10   243.2 | .20    23.1 | .25     6.3   (needs 0 or >= 20)
+  p=q=40: eps .05   514.0 | .10    59.1 | .20     0.5 | .25     0.0   (needs 0 or >= 40)
+  20x20 n=100 eps=0.20: c_full 16, d_full 19 (expected before false flags 23.1); Prop. A fires on T=[p] or U=[q]: TRUE; KL 3.706; kept matrices 100; 15.3 s
+  20x20 n=100 eps=0.25: c_full 5, d_full 4 (expected before false flags 6.3); Prop. A fires on T=[p] or U=[q]: TRUE; KL 10.950; kept matrices 82; 28.3 s
+```
+At $20\times20$ with 20 % random cells the fitted kept pattern has $c_{[p]} = 16 < 20$ fully kept columns, so by Prop. A (proven) $F$ is unbounded below for that pattern, and the KL is 3.7 (11.0 at 25 %, with 18 matrices trimmed); the algorithm still converges to a finite local minimum. The limit is intrinsic to any per-column quota with $1-\alpha$ flags allowed per column: the fix would be a quota that scales with $p$ (fewer flags per column), which trades cellwise capacity for existence. Reference KL for a clean $20\times20$ MLE not computed (parameter count suggests $\approx 419/200 = 2.1$). This is the main practical finding of the block and should be stated as an operating range in the paper (done in PAPER §4).

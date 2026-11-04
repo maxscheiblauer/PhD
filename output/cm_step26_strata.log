@@ -9,10 +9,11 @@ cellMMCD step 26 (block 9): stratum criterion, Prop. C' slopes, Conjecture C'' o
   2x2 all kept, y = a_perp b_perp' (delta^2 mode): slope 4.000, nu 4
 
 (c) Conjecture C'' on random 3x3 patterns (kept prob .55; 40 patterns per n):
-  n=2 pattern 13: worst stratum T={1} U={12} count 1 need 2; (a,b) resid 1.9e+00 full TRUE; slope -280934.249 (nu 1; control slope 0)
-  n=2: Prop. A fires 38, cross-only 1, silent 1
-  n=3: Prop. A fires 38, cross-only 0, silent 2
-  n=4: Prop. A fires 31, cross-only 0, silent 9
+  n=2: Prop. A fires 38, cross-only 0, silent 2
+  n=3: Prop. A fires 39, cross-only 0, silent 1
+  n=4 pattern 15: worst stratum T={123} U={123} count 4 need 5; (a,b) resid 2.9e-17 full FALSE; slope -1413902.031 (nu 4; control slope -2170495)
+  n=4 pattern 16: worst stratum T={123} U={123} count 4 need 5; (a,b) resid 1.7e-29 full FALSE; slope -1048886.643 (nu 4; control slope -311313)
+  n=4: Prop. A fires 30, cross-only 2, silent 8
 
 (d) algorithm-produced patterns (default cellmmcd), worst stratum over all (T,U):
   3x3 n=  6 eps=0.00 seed 2401: kept matrices 5, c_full 14, d_full 14, viol_A 0, viol_cross 0, min slack 0 (T={123} U={123} count 5 need 5), 0.0 s
@@ -31,4 +32,4 @@ cellMMCD step 26 (block 9): stratum criterion, Prop. C' slopes, Conjecture C'' o
   p=q=20: eps .05   717.0 | .10   243.2 | .20    23.1 | .25     6.3   (needs 0 or >= 20)
   p=q=40: eps .05   514.0 | .10    59.1 | .20     0.5 | .25     0.0   (needs 0 or >= 40)
   20x20 n=100 eps=0.20: c_full 16, d_full 19 (expected before false flags 23.1); Prop. A fires on T=[p] or U=[q]: TRUE; KL 3.706; kept matrices 100; 15.3 s
-  20x20 n=100 eps=0.25: c_full 5, d_full 4 (expected before false flags 6.3); Prop. A fires on T=[p] or U=[q]: TRUE; KL 10.950; kept matrices 82; 27.3 s
+  20x20 n=100 eps=0.25: c_full 5, d_full 4 (expected before false flags 6.3); Prop. A fires on T=[p] or U=[q]: TRUE; KL 10.950; kept matrices 82; 28.3 s

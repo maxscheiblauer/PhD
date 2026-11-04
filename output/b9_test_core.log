@@ -31,4 +31,3 @@
 [PASS] RJ: fit_rj end point is a fixed point of tff's block updates (same C-step: TRUE, step size 1.1e-08); J* fit_rj 37.754 vs tff 37.931
 
 31 / 31 tests passed
-TESTS_DONE
