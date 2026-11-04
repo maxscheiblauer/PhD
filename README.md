@@ -14,6 +14,8 @@
 
 **Theory:** [`notes/rj_objective.md`](notes/rj_objective.md) (RJ derivation, link to the MLE, Fisher consistency), [`notes/r1_convergence.md`](notes/r1_convergence.md) (why R1 cannot have a convergence theorem). The original spec and plan are kept as historical notes in `notes/`.
 
+**Overnight autonomous run:** see [`notes/overnight/RUNBOOK.md`](notes/overnight/RUNBOOK.md).
+
 ## Layout
 
 ```

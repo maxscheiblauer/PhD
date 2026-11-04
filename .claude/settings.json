@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/overnight/stop_guard.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
