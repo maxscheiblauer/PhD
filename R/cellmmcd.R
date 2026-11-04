@@ -219,11 +219,13 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # tail = TRUE (block 3): censored treatment of flagged cells in the parameter step (cm_pstep tau), with
 # calib switched off (the proxy fixed point is then at scale 1 with 1 - quant flagged).
 # safeguard = TRUE (block 3): full-column/row constraint restored after each cell step (cm_fullcol, 3a).
-# reweight = TRUE (block 3): after convergence, re-flag at the quant_rw quantile and refit with the flags
-# fixed (cm_reweight), the analogue of the reweighted MCD; the raw fit is returned as $raw.
+# reweight = TRUE (block 3, the default since the bias finding of exp/cm_step6_bias.R): after convergence,
+# re-flag at the quant_rw quantile and refit with the flags fixed (cm_reweight), the analogue of the
+# reweighted MCD; the raw fit is returned as $raw. reweight = FALSE gives the raw estimator, which is
+# asymptotically biased in shape at the Gaussian (JOURNAL, block 3).
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
-                     reweight = FALSE, quant_rw = 0.999, safeguard = FALSE, trace = FALSE) {
+                     reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -297,7 +299,8 @@ cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8) {
   sc <- scale_ident(Sr / (t_rw * t_obs), Sc, "det")
   list(Sr = sc$Sr, Sc = sc$Sc, M = fit$M, W = W, Wfix = fit$Wfix, v = v, obj = obj, iter = it,
        flagged = mean(!W[, , v]), trimmed = mean(!v), factor = t_rw * t_obs, converged = it < maxit,
-       raw = fit, quant_rw = quant_rw)
+       raw = fit, quant_rw = quant_rw, lambda = fit$lambda, mu = fit$mu, start = fit$start, tau = fit$tau,
+       unflagged = fit$unflagged)
 }
 
 ## ---- 6. Scale fixed point of the 1-D proxy (journal, block 2) ------------------------

@@ -1,0 +1,7 @@
+p = q = 5, n = 100, 10 reps. Median KL / recall / false flag rate (cells flagged or matrix trimmed) / seconds.
+none      shift 0: q99 KL 0.214 rec NA fp 0.037 0.3s | q999 KL 0.141 rec NA fp 0.016 0.2s | rw KL 0.156 rec NA fp 0.026 0.3s | rw995 KL 0.169 rec NA fp 0.030 0.4s | 
+cells     shift 3: q99 KL 0.295 rec 0.97 fp 0.244 0.5s | q999 KL 0.388 rec 0.94 fp 0.239 0.4s | rw KL 0.302 rec 0.96 fp 0.240 0.5s | rw995 KL 0.296 rec 0.97 fp 0.243 0.5s | 
+cells     shift 4: q99 KL 0.313 rec 1.00 fp 0.249 0.7s | q999 KL 0.282 rec 0.99 fp 0.242 0.5s | rw KL 0.283 rec 1.00 fp 0.243 0.6s | rw995 KL 0.320 rec 1.00 fp 0.247 0.5s | 
+cells     shift 6: q99 KL 0.237 rec 1.00 fp 0.031 0.6s | q999 KL 0.172 rec 1.00 fp 0.022 0.4s | rw KL 0.186 rec 1.00 fp 0.023 0.7s | rw995 KL 0.211 rec 1.00 fp 0.027 0.7s | 
+shiftmat  shift 2: q99 KL 0.714 rec 0.25 fp 0.117 0.4s | q999 KL 0.351 rec 0.23 fp 0.028 0.2s | rw KL 0.412 rec 0.24 fp 0.103 0.5s | rw995 KL 0.552 rec 0.25 fp 0.108 0.4s | 
+shiftmat  shift 5: q99 KL 0.352 rec 1.00 fp 0.046 0.4s | q999 KL 0.193 rec 1.00 fp 0.014 0.2s | rw KL 0.243 rec 1.00 fp 0.034 0.5s | rw995 KL 0.295 rec 1.00 fp 0.040 0.5s | 

@@ -1,0 +1,4 @@
+quant 0.990  3x4  kappa 0.0745  sum pcor^2 9.88  shapeKL(first order) 0.01458  approx kappa^2/4 sum pcor^2 0.01370  shapeKL(iterated map) 0.01107  tr ratio 0.934
+quant 0.990  5x5  kappa 0.0745  sum pcor^2 21.36  shapeKL(first order) 0.03140  approx kappa^2/4 sum pcor^2 0.02963  shapeKL(iterated map) 0.02378  tr ratio 0.934
+quant 0.999  3x4  kappa 0.0117  sum pcor^2 9.88  shapeKL(first order) 0.00030  approx kappa^2/4 sum pcor^2 0.00034  shapeKL(iterated map) 0.00029  tr ratio 0.989
+quant 0.999  5x5  kappa 0.0117  sum pcor^2 21.36  shapeKL(first order) 0.00064  approx kappa^2/4 sum pcor^2 0.00073  shapeKL(iterated map) 0.00062  tr ratio 0.989

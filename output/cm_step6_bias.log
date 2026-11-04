@@ -1,0 +1,16 @@
+Clean 3x4 full shape, 4 seeds. Mean KL, n*KL, shape KL, flagged fraction, tr ratio, seconds per fit.
+n =   500  MLE: KL 0.01772  n*KL 8.86
+   default KL 0.03688 (ratio 2.08) n*KL  18.44  shape 0.03638  flagged 0.0137  tr 0.999  1s
+   q999    KL 0.01832 (ratio 1.03) n*KL   9.16  shape 0.01805  flagged 0.0042  tr 1.003  0s
+   tail    KL 0.02325 (ratio 1.31) n*KL  11.62  shape 0.01987  flagged 0.0111  tr 1.032  1s
+   rw      KL 0.01796 (ratio 1.01) n*KL   8.98  shape 0.01765  flagged 0.0045  tr 0.996  1s
+n =  2000  MLE: KL 0.00371  n*KL 7.43
+   default KL 0.01609 (ratio 4.33) n*KL  32.18  shape 0.01598  flagged 0.0128  tr 0.999  3s
+   q999    KL 0.00383 (ratio 1.03) n*KL   7.66  shape 0.00376  flagged 0.0038  tr 0.999  1s
+   tail    KL 0.00766 (ratio 2.06) n*KL  15.31  shape 0.00601  flagged 0.0105  tr 1.024  3s
+   rw      KL 0.00404 (ratio 1.09) n*KL   8.07  shape 0.00389  flagged 0.0040  tr 0.996  4s
+n =  8000  MLE: KL 0.00073  n*KL 5.88
+   default KL 0.01157 (ratio 15.75) n*KL  92.54  shape 0.01153  flagged 0.0121  tr 0.999  13s
+   q999    KL 0.00102 (ratio 1.39) n*KL   8.19  shape 0.00091  flagged 0.0035  tr 0.995  7s
+   tail    KL 0.00360 (ratio 4.90) n*KL  28.79  shape 0.00280  flagged 0.0101  tr 1.016  12s
+   rw      KL 0.00109 (ratio 1.49) n*KL   8.76  shape 0.00092  flagged 0.0037  tr 0.993  15s

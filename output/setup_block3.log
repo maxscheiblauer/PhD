@@ -1,0 +1,10 @@
+setup: installing R + apt packages (log: /tmp/overnight_setup.log)
+setup: building svd from github.com/cran/svd
+setup: building robustmatrix from github.com/cran/robustmatrix
+setup: building cellWise from github.com/cran/cellWise
+robustmatrix 0.1.5 
+cellWise 2.5.7 
+MASS 7.3.60.0.1 
+Rcpp 1.0.12 
+RcppArmadillo 0.12.8.1.0 
+setup: done
