@@ -1,0 +1,15 @@
+cellMMCD step 25 (block 8): cross path on a Prop.-A-silent 3x3 pattern, n = 3
+cm_check_pattern: 0 0 0 0 0 
+cross vector w (vec order), support on kept cells of matrix 1: TRUE ; w'y_1 = 5.973954e-17 
+  d = 1e-01: F =    33.191  (matrix 1   13.393, 2  12.895, 3   6.902); log d =  -2.303; eigenvalues of Sigma_O1O1: 0.613 0.576 0.502 0.0997
+  d = 1e-02: F =    32.699  (matrix 1   11.354, 2  14.183, 3   7.161); log d =  -4.605; eigenvalues of Sigma_O1O1: 0.574 0.533 0.496 0.00997
+  d = 1e-03: F =    30.601  (matrix 1    9.077, 2  14.333, 3   7.191); log d =  -6.908; eigenvalues of Sigma_O1O1: 0.57 0.529 0.496 0.000997
+  d = 1e-04: F =    28.319  (matrix 1    6.776, 2  14.348, 3   7.195); log d =  -9.210; eigenvalues of Sigma_O1O1: 0.57 0.529 0.496 9.97e-05
+  d = 1e-05: F =    26.019  (matrix 1    4.474, 2  14.350, 3   7.195); log d = -11.513; eigenvalues of Sigma_O1O1: 0.57 0.529 0.496 9.97e-06
+  d = 1e-06: F =    23.717  (matrix 1    2.172, 2  14.350, 3   7.195); log d = -13.816; eigenvalues of Sigma_O1O1: 0.57 0.529 0.496 9.97e-07
+  d = 1e-07: F =    21.414  (matrix 1   -0.131, 2  14.350, 3   7.195); log d = -16.118; eigenvalues of Sigma_O1O1: 0.57 0.529 0.496 9.97e-08
+  d = 1e-08: F =    19.111  (matrix 1   -2.434, 2  14.350, 3   7.195); log d = -18.421; eigenvalues of Sigma_O1O1: 0.57 0.529 0.496 9.97e-09
+Control: same path with a generic (a, b) (no orthogonality):
+  d = 1e-02: F =  2232.664
+  d = 1e-04: F = 152864.395
+  d = 1e-06: F = 14967830.661
