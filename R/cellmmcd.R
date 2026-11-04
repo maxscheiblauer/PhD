@@ -438,3 +438,27 @@ cm_proxy_if <- function(x, quant = 0.99, quant_rw = 0.999) {
   if_rw <- kept * (x^2 / F3 - 1 / F1) + srw * phrw * (crw * F1 - F3) / (F1 * F3) * if_raw
   c(raw = if_raw, rw = if_rw, t0 = if_t0)
 }
+
+# ---- Block 8: configuration criterion for the boundedness of F (JOURNAL block 7 result 1, block 8 result 1) -----------
+# For a kept pattern (W, v): c_T = #{(i, l): v_i, T x {l} subset of O_i} over row sets T, d_U likewise for column sets U.
+# Prop. A: 1 <= c_T <= |T| - 1 (or 1 <= d_U <= |U| - 1) implies inf F = -inf. The converse is FALSE (block 8, result 1:
+# a cross-shaped kept set lets both factors degenerate together), so viol = 0 certifies nothing; viol = 1 certifies
+# unboundedness. All c_T at once by the superset-sum transform over bit masks, O(m 2^m); for m > max_enum only
+# c_[p] is computed (c_T is non-increasing in T, so c_[p] >= p settles every T).
+cm_check_pattern <- function(W, v = NULL, max_enum = 16) {
+  if (is.list(W)) { v <- W$v; W <- W$W }
+  p <- dim(W)[1]; q <- dim(W)[2]; n <- dim(W)[3]; if (is.null(v)) v <- rep(TRUE, n)
+  Wv <- W[, , v, drop = FALSE]
+  side <- function(A, m) {                                        # A: logical m x N, one column per kept (matrix, line) pair
+    masks <- as.vector(2^(seq_len(m) - 1) %*% A); full <- sum(masks == 2^m - 1)
+    if (m > max_enum) return(list(full = full, viol = if (full >= m) 0 else NA, slack = NA, set = integer()))
+    cnt <- tabulate(masks + 1, nbins = 2^m); all_m <- 0:(2^m - 1)
+    for (j in seq_len(m)) { b <- 2^(j - 1); idx <- which(bitwAnd(all_m, b) == 0); cnt[idx] <- cnt[idx] + cnt[idx + b] }
+    size <- rowSums(outer(all_m, 2^(seq_len(m) - 1), function(x, b) bitwAnd(x, b) > 0))
+    cT <- cnt[-1]; sT <- size[-1]; bad <- which(cT >= 1 & cT <= sT - 1)
+    list(full = full, viol = as.numeric(length(bad) > 0), slack = if (any(cT >= 1)) min((cT - sT)[cT >= 1]) else NA,
+         set = if (length(bad)) which(bitwAnd(all_m[-1][bad[1]], 2^(seq_len(m) - 1)) > 0) else integer()) }
+  r <- side(matrix(Wv, nrow = p), p); c <- side(matrix(aperm(Wv, c(2, 1, 3)), nrow = q), q)
+  viol <- if (is.na(r$viol) || is.na(c$viol)) { if (isTRUE(r$viol == 1) || isTRUE(c$viol == 1)) 1 else NA } else as.numeric(r$viol == 1 || c$viol == 1)
+  list(viol = viol, c_full = r$full, d_full = c$full, slack_T = r$slack, slack_U = c$slack, T = r$set, U = c$set)
+}

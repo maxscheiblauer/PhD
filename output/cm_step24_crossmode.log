@@ -1,0 +1,23 @@
+cellMMCD step 24 (block 8): cross-mode counterexample and location-free counting
+
+(a) n = 1, kept cells (2,1), (1,2), y = 1.3 -0.7 ; cm_check_pattern: 0 0 0 0 0 
+  t = 1e-01: F =     3.153  (log t =  -2.303; rho_r = 0.942750, rho_c = -0.939274)
+  t = 1e-02: F =     0.850  (log t =  -4.605; rho_r = 0.993517, rho_c = -0.993474)
+  t = 1e-03: F =    -1.453  (log t =  -6.908; rho_r = 0.999343, rho_c = -0.999342)
+  t = 1e-04: F =    -3.755  (log t =  -9.210; rho_r = 0.999934, rho_c = -0.999934)
+  t = 1e-05: F =    -6.058  (log t = -11.513; rho_r = 0.999993, rho_c = -0.999993)
+  t = 1e-06: F =    -8.361  (log t = -13.816; rho_r = 0.999999, rho_c = -0.999999)
+  t = 1e-07: F =   -10.656  (log t = -16.118; rho_r = 1.000000, rho_c = -1.000000)
+  t = 1e-08: F =    -8.000  (log t = -18.421; rho_r = 1.000000, rho_c = -1.000000)
+  BFGS restarts, F: 5.49 5.49 5.49 5.49 5.49 5.49 5.49 5.49 5.49 5.49 ; eigenvalue ratios 0.538 0.538 
+
+(b) n = 2: S has correlation -0.9852, logdet -6.127. F at the Kronecker realisation of Sigma_OO = S: -0.9034 = unstructured minimum 2 logdet S + 4 + 4 log 2 pi = -0.9034 (bounded: the cone covers every PD 2x2 Sigma_OO on this pattern).
+    BFGS from the identity (log-Cholesky, 10 restarts) stalls at 6.1574 (eigenvalue ratios 0.868 0.868): a generic optimiser does not find the coupled boundary direction; same for (a), where it stalls at 5.49.
+
+(c) 3x3, n = 6, clean, default cellmmcd (loc = TRUE), maxit 300 vs 1500: F_end, dF between the two, eigenvalue ratios, N_l, sum (N_l-1)_+, viol
+  seed 1: F     62.88, dF(1500-300)  0.00e+00, evr 5.59e-02 5.62e-02, N_l 3,2,3,3,3 (sum(N_l-1)+ = 9 vs p-1 = 2), N_k 5,4,5 (11), c_full 14 d_full 14 viol 0, trimmed 1, flags 1
+  seed 2: F     57.95, dF(1500-300)  0.00e+00, evr 5.88e-02 9.02e-02, N_l 2,3,2,3,3 (sum(N_l-1)+ = 8 vs p-1 = 2), N_k 4,4,5 (10), c_full 13 d_full 13 viol 0, trimmed 1, flags 2
+  seed 3: F     34.02, dF(1500-300)  0.00e+00, evr 3.01e-02 5.01e-03, N_l 3,3,2,3,1 (sum(N_l-1)+ = 7 vs p-1 = 2), N_k 4,4,3 (8), c_full 12 d_full 11 viol 0, trimmed 1, flags 4
+  seed 4: F     56.37, dF(1500-300)  0.00e+00, evr 6.03e-02 6.78e-02, N_l 3,3,2,3,2 (sum(N_l-1)+ = 8 vs p-1 = 2), N_k 5,5,3 (10), c_full 13 d_full 13 viol 0, trimmed 1, flags 2
+  seed 5: F     41.62, dF(1500-300)  0.00e+00, evr 4.28e-02 1.44e-01, N_l 3,3,1,3,3 (sum(N_l-1)+ = 8 vs p-1 = 2), N_k 5,4,4 (10), c_full 13 d_full 13 viol 0, trimmed 1, flags 2
+  seed 6: F     73.64, dF(1500-300)  0.00e+00, evr 5.70e-02 8.44e-02, N_l 3,3,2,2,2,3 (sum(N_l-1)+ = 9 vs p-1 = 2), N_k 5,5,5 (12), c_full 15 d_full 15 viol 0, trimmed 0, flags 3

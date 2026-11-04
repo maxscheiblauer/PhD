@@ -207,5 +207,19 @@ if (isTRUE(has_cpp)) { Or20 <- solve(st20$Sr); Oc20 <- solve(st20$Sc); Tf20 <- a
   Wn <- cm_wstep_cpp(Tf20, Or20, Oc20, W0, Wf20, lam20, 60L, v20, TRUE); Wo <- cm_wstep_cpp0(Tf20, Or20, Oc20, W0, Wf20, lam20, 60L, v20, TRUE)
   res["cpp_cache"] <- ok(sprintf("cached-inverse cell step identical to the original: %s (%d flags)", identical(Wn, Wo), sum(!Wn)), identical(Wn, Wo)) }
 
+# 26 (block 8): configuration criterion cm_check_pattern (JOURNAL block 7 result 1, block 8 result 1). (a) a pattern with
+# exactly one fully kept column (c_[p] = 1 <= p - 1) violates Prop. A; (b) the last fit above does not (c_[p] >= p);
+# (c) the 2x2 anti-diagonal pattern is not flagged although F is unbounded along the explicit path Sigma_OO = yy' + tI
+# (the converse of Prop. A fails: cross-shaped null vectors when both factors degenerate).
+set.seed(26); Wa <- array(TRUE, c(3, 4, 6)); for (i in 1:6) for (l in 1:4) if (!(i == 1 && l == 1)) Wa[sample(3, 1), l, i] <- FALSE
+ca <- cm_check_pattern(Wa); cb <- cm_check_pattern(fit)
+y26 <- c(1.3, -0.7); W26 <- array(c(FALSE, TRUE, TRUE, FALSE), c(2, 2, 1)); X26 <- array(0, c(2, 2, 1)); X26[2, 1, 1] <- y26[1]; X26[1, 2, 1] <- y26[2]
+F26 <- sapply(10^-(1:6), function(t) { a <- y26[1]^2 + t; d <- y26[2]^2 + t; cc <- prod(y26); rr <- (1 + abs(cc) / sqrt(a * d)) / 2
+  cm_obj(X26, matrix(c(1, rr, rr, 1), 2), matrix(c(a, cc / rr, cc / rr, d), 2), W26, matrix(0, 2, 2)) })
+cc26 <- cm_check_pattern(W26)
+res["check_pattern"] <- ok(sprintf("cm_check_pattern: one full column viol %d (c_full %d); fit viol %d (c_full %d, d_full %d, slack %d / %d); 2x2 cross pattern viol %d while F drops %.1f along the path",
+  ca$viol, ca$c_full, cb$viol, cb$c_full, cb$d_full, cb$slack_T, cb$slack_U, cc26$viol, F26[6] - F26[1]),
+  ca$viol == 1 && ca$c_full == 1 && cb$viol == 0 && cb$c_full >= 3 && cc26$viol == 0 && all(diff(F26) < 0) && F26[6] - F26[1] < -9)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

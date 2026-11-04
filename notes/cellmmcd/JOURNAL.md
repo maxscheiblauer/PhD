@@ -274,3 +274,11 @@ Shifted matrices (5 sd): all three rules hold up to 25 % (KL 0.21–0.30) and br
 
 ### Result 5: timing at 30×30 and 40×40 (`exp/cm_step22_timing_ext.R`, `output/cm_step22_timing_ext.log`; 5 % cells, 1 core)
 30×30, n = 100: cellMMCD 15.3 s (MMCD 16.3 s; KL 5.8 vs 2637); 40×40, n = 120: 111 s (MMCD 46 s; KL 8.9 vs 4858). Recall 1.00, false flags 0.6 % at both sizes. The cell step's m̄²pq term now dominates (m̄ ≈ 80 flags per matrix at 40×40); the earlier sizes: 0.4 / 0.4 / 1.0 / 2.4 s at 5 / 10 / 15 / 20. cellMMCD is faster than MMCD from 10×10 to 30×30 and slower at 40×40.
+
+## Block 8 (2026-11-04, session_01Fi3wVd7Lwb6N87EaiCzw5q)
+
+### Plan and reasons
+1. **Conjecture C (STATE-7 item 1).** Before attacking the two sub-cases, test the conjecture's own reasoning on the smallest instance: the claim "the null vectors of a Kronecker limit supported on $O_i$ are exactly the $e_l\otimes a$ and $b\otimes e_k$" ignores sums $e_l\otimes a + b\otimes e_k$ that cancel at the crossing cell $(k,l)$, which exist when **both** factors degenerate. If such a cross vector is supported on a kept set that contains no partial column or row at all, the criterion is silent and $F$ may still be unbounded. Target: settle this by an explicit example (result 1), then say what is left of C.
+2. **`cm_check_pattern` in `R/`** (STATE-7 item 2) with a subset-sum (zeta transform) implementation, a test, and a warning hook in `cellmmcd`.
+3. **Numerical checks** (step 24): the example of 1, the location-free counting at $3\times3$, $n = 6$ (STATE-7 item 4).
+4. **Paper polish** (STATE-7 item 3): breakdown figure from a rerun of step 21 (the rds did not survive the container), and the theory table updated with the result of 1.
