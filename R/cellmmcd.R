@@ -248,6 +248,7 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # Observation trimming (block 2): alpha_obs < 1 allows up to n - ceiling(alpha_obs n) whole
 # matrices to be trimmed; quant_obs = NULL trims exactly that many (hard quota), otherwise an
 # observation is trimmed iff d_i > mu_i, the quant_obs quantile of its own kept cells at the
+# (hard quota, block 5: the scale is multiplied by the MCD consistency factor kappa_mcd(alpha_obs, pq), d = pq as above)
 # initial estimate (cm_vstep), with the same calibration (t_obs = F_{pq+2}(c) / F_pq(c) at d = pq,
 # an approximation for matrices with flagged cells; final Sigma also divided by t_obs).
 # max_flag: matrices with more than this fraction of flagged cells are trimmed as a whole (they are
@@ -285,6 +286,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   trim_obs <- !is.null(alpha_obs) && alpha_obs < 1
   h_obs <- if (trim_obs) ceiling(alpha_obs * n) else n
   t_obs <- 1; mu <- -Inf
+  if (trim_obs && is.null(quant_obs) && calib) t_obs <- 1 / kappa_mcd(alpha_obs, p * q)   # hard quota (block 5): MCD consistency factor at d = pq
   if (trim_obs && !is.null(quant_obs)) {
     co <- qchisq(quant_obs, p * q); if (calib) t_obs <- pchisq(co, p * q + 2) / pchisq(co, p * q)
     mu <- list(Sr0 = st$Sr, Sc0 = st$Sc, quant = quant_obs, t_obs = t_obs)
@@ -313,7 +315,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   fit <- list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, Wfix = Wfix, v = v, obj = obj, iter = it,
               flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
               start = st, converged = it < maxit, tau = tau, unflagged = unflagged, shadow_it = shadow_it,
-              eps_bar = eps_bar, count_max = count_max)
+              eps_bar = eps_bar, count_max = count_max, t_obs = t_obs)
   if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol) else fit
 }
 
@@ -350,7 +352,7 @@ cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8) {
     prev <- f2
   }
   t_rw <- pchisq(crw, 3) / pchisq(crw, 1)
-  t_obs <- if (is.list(fit$mu)) fit$mu$t_obs else 1
+  t_obs <- if (is.list(fit$mu)) fit$mu$t_obs else fit$t_obs
   sc <- scale_ident(Sr / (t_rw * t_obs), Sc, "det")
   list(Sr = sc$Sr, Sc = sc$Sc, M = fit$M, W = W, Wfix = fit$Wfix, v = v, obj = obj, iter = it,
        flagged = mean(!W[, , v]), trimmed = mean(!v), factor = t_rw * t_obs, converged = it < maxit,

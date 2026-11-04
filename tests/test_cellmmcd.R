@@ -176,5 +176,11 @@ res["eps_robust"] <- ok(sprintf("robust flag rate: clean %.4f (true %.2f), with 
 # (with exactly 25 % contaminated matrices none of the clean counts is cut, so the correction over-corrects: 0.107 for 0.08,
 #  i.e. count_max one unit higher; the plain mean doubles. Exact at 0 % casewise contamination, bounded in between.)
 
+# 22 (block 5): hard quota with the MCD consistency factor: clean-data scale ratio near 1 (block 4: 0.87 without it).
+set.seed(22); S22 <- true_sigma(4, 4, "full"); X22 <- rmatnorm(400, Sr = S22$Sr, Sc = S22$Sc)
+fh <- cellmmcd(X22, quant_obs = NULL); tr22 <- tr_ratio(fh$Sr, fh$Sc, S22$Sr, S22$Sc)
+res["hard_kappa"] <- ok(sprintf("hard quota: trimmed %.2f, factor t_obs %.3f (kappa %.3f), clean scale ratio %.3f", fh$trimmed, fh$raw$t_obs, kappa_mcd(0.75, 16), tr22),
+                        abs(fh$trimmed - 0.25) < 0.01 && abs(tr22 - 1) < 0.06)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)
