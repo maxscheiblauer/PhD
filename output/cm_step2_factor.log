@@ -1,0 +1,5 @@
+predicted scale ratio at quant .99: 0.9248
+3x4 n= 100: tr ratio 0.899 (se 0.016), flagged 0.021, shape KL 0.136, KL after dividing by 0.925: 0.146
+3x4 n=1000: tr ratio 0.893 (se 0.004), flagged 0.017, shape KL 0.027, KL after dividing by 0.925: 0.031
+5x5 n= 100: tr ratio 0.885 (se 0.010), flagged 0.024, shape KL 0.257, KL after dividing by 0.925: 0.275
+5x5 n=1000: tr ratio 0.897 (se 0.003), flagged 0.017, shape KL 0.059, KL after dividing by 0.925: 0.065
