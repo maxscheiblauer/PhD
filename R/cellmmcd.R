@@ -165,13 +165,15 @@ cm_fullcol <- function(W, Wfix, v) {
 # cells are jointly beyond their quant_obs quantile (at the initial scale, like lambda).
 # max_flag: a kept observation may have at most this fraction of its cells flagged; matrices beyond
 # it are trimmed first (constraint on (v, W), see METHOD.md 4c).
-cm_vstep <- function(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag = 1) {
+# count_max (block 4): a kept observation may have at most this many flagged cells (adaptive majority rule, driver:
+# the flag_quant quantile of Binomial(pq, eps_bar) at the current overall flag rate eps_bar); Inf = off.
+cm_vstep <- function(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag = 1, count_max = Inf) {
   p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
   d <- cm_obj_i(Xc, Sr, Sc, W, lambda)
   v <- rep(TRUE, n); budget <- n - h_obs
   if (budget <= 0) return(v)
   if (is.list(mu)) { d <- d - cm_mu_i(Xc, W, lambda, mu); cand <- which(d > 0) } else cand <- seq_len(n)
-  forced <- which(apply(!W, 3, mean) > max_flag)
+  nfl <- apply(!W, 3, sum); forced <- which(nfl > max_flag * p * q | nfl > count_max)
   if (length(forced)) { d[forced] <- Inf; cand <- union(forced, cand) }
   if (length(cand) > budget) cand <- cand[order(d[cand], decreasing = TRUE)[1:budget]]
   v[cand] <- FALSE
@@ -238,6 +240,9 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # re-flag at the quant_rw quantile and refit with the flags fixed (cm_reweight), the analogue of the
 # reweighted MCD; the raw fit is returned as $raw. reweight = FALSE gives the raw estimator, which is
 # asymptotically biased in shape at the Gaussian (JOURNAL, block 3).
+# flag_quant (block 4): adaptive majority rule. With the shadow step, a casewise outlier whose worst cells are flagged
+# can pass the kept-cell test (selection); so a kept matrix may have at most qbinom(flag_quant, pq, eps_bar) flagged
+# cells, eps_bar = current overall flag rate among the kept matrices (at least 1 - quant). NULL = off (max_flag only).
 # shadow_it (block 4): during the first shadow_it iterations the cell step also re-decides the cells of the
 # trimmed observations (cm_wstep shadow), so that the observation step can re-admit a matrix whose cellwise
 # outliers are flagged by then. Those cells change F only through the trimmed charge mu_i(W_i), so F need
@@ -245,7 +250,8 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # makes the convergence argument hold after at most shadow_it non-monotone iterations. 0 = off.
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
-                     reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, shadow_it = 10, trace = FALSE) {
+                     reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, shadow_it = 10, flag_quant = 0.999,
+                     trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -265,7 +271,11 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   Sr <- st$Sr; Sc <- st$Sc; W <- Wfix; v <- rep(TRUE, n)
   obj <- numeric(0); prev <- Inf; unflagged <- 0
   for (it in 1:maxit) {
-    if (trim_obs) v <- cm_vstep(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag)
+    if (trim_obs) {
+      eps_bar <- max(mean(!W[, , v]), 1 - quant)
+      count_max <- if (is.null(flag_quant)) Inf else qbinom(flag_quant, p * q, eps_bar)
+      v <- cm_vstep(Xc, Sr, Sc, W, lambda, mu, h_obs, max_flag, count_max)
+    }
     nv <- sum(v); h <- ceiling(alpha * nv)
     W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v, shadow = trim_obs && it <= shadow_it)
     if (safeguard) { sg <- cm_fullcol(W, Wfix, v); W <- sg$W; unflagged <- unflagged + sg$unflagged }
