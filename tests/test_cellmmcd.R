@@ -185,7 +185,7 @@ res["hard_kappa"] <- ok(sprintf("hard quota: trimmed %.2f, factor t_obs %.3f (ka
 # 23 (block 5): joint location. Clean 4x4, n = 200, true M = 2: the EM location is closer to M than the cellwise median,
 # F stays monotone after the shadow phase, and the fit with loc = FALSE is unchanged by the new argument.
 set.seed(23); S23 <- true_sigma(4, 4, "full"); X23 <- rmatnorm(200, Sr = S23$Sr, Sc = S23$Sc) + 2
-fj <- cellmmcd(X23, loc = TRUE); fm <- cellmmcd(X23); e_j <- sum((fj$M - 2)^2); e_m <- sum((fm$M - 2)^2)
+fj <- cellmmcd(X23, loc = TRUE); fm <- cellmmcd(X23, loc = FALSE); e_j <- sum((fj$M - 2)^2); e_m <- sum((fm$M - 2)^2)
 oj <- fj$raw$obj; mono <- all(diff(oj[-(1:(2 * fj$raw$shadow_it))]) <= 1e-8 * abs(oj[1]))
 res["loc_joint"] <- ok(sprintf("joint location: squared error %.4f (median plug-in %.4f), F monotone after the shadow phase %s, KL %.3f vs %.3f",
                                e_j, e_m, mono, kl_mn(fj$Sr, fj$Sc, S23$Sr, S23$Sc), kl_mn(fm$Sr, fm$Sc, S23$Sr, S23$Sc)), e_j < e_m && mono)
