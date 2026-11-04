@@ -1,6 +1,6 @@
 # STATE: baton between overnight blocks
 
-_Last updated: 2026-11-04 by block 9 (session_01Fi3wVbnwPRUu9jbsuXxQpq). Each block rewrites this file at its end (PROTOCOL §6)._
+_Last updated: 2026-11-04 by block 9 (session_01Fi3wVbnwPRUu9jbsuXxQpq); block 10 (final) only reran the tests (27/27 + 31/31, `output/b10_test_*.log`) and wrote `MORNING_REPORT.md`; no code or estimator changes. Each block rewrites this file at its end (PROTOCOL §6)._
 
 ## Current method: cellMMCD, reweighted, shadow step, count rule (robust rate), joint location; fallback: reweighted hard quota (status: estimator unchanged since block 6; tests 27/27 + core 31/31; paper draft exists)
 - **Definition** (`notes/cellmmcd/METHOD.md` §0, §2, §4, §4a–4e; paper form `notes/cellmmcd/PAPER.md`). **No change to the estimator or the algorithm in blocks 7–9.**

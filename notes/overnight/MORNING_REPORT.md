@@ -63,7 +63,7 @@ _Written by block 10 (final, session_01Fi3wVf4AFqBEhFFyDjtwqz). Sources: STATE.m
 | 3 | 7.60 | | 8 | 7.59 |
 | 4 | 8.83 | | 9 | 8.77 |
 
-Closed blocks 0–9: **$86.49** by the in-container meter (safety factor 1.15). Block 10 (this report) is appended to the ledger at close, about $2–3. The supervisor session's own launch overhead is booked only inside block 0's figure, so the account total is somewhat higher than the ledger sum; the launch rows record the supervisor's running estimate (about $83 spent before block 10 was launched).
+Closed blocks 0–9: **$86.49** by the in-container meter (safety factor 1.15). Block 10 (this report) is appended to the ledger at close, about $2.44. The supervisor session's own launch overhead is booked only inside block 0's figure, so the account total is somewhat higher than the ledger sum; the launch rows record the supervisor's running estimate (about $83 spent before block 10 was launched).
 
 ## Files to read first
 `notes/cellmmcd/PAPER.md` (whole), `notes/overnight/STATE.md` (next steps), `notes/cellmmcd/JOURNAL.md` block 9, `output/cm_step26_strata.log` (e), `output/cm_step20_default.log`.
