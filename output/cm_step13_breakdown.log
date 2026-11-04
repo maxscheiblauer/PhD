@@ -1,28 +1,28 @@
 cellMMCD step 13: p = q = 5, n = 100, 5 reps. KL median [max]; flagged = fraction of cells flagged among kept matrices; rec = recall of bad cells (flagged or trimmed).
-cell eps 0.10 mag    4: cellMMCD KL   0.237 [  0.320] flagged 0.101 rec 0.99 trimmed 0.00 errors 0 | kpair KL   1.735 | MLE KL    55.61
-cell eps 0.20 mag    4: cellMMCD KL   0.514 [  0.934] flagged 0.199 rec 0.96 trimmed 0.00 errors 0 | kpair KL   9.664 | MLE KL   127.58
-cell eps 0.25 mag    4: cellMMCD KL   5.220 [ 27.170] flagged 0.226 rec 0.87 trimmed 0.01 errors 0 | kpair KL  19.202 | MLE KL   171.69
-cell eps 0.30 mag    4: cellMMCD KL  71.355 [156.567] flagged 0.151 rec 0.56 trimmed 0.05 errors 0 | kpair KL  53.328 | MLE KL   194.66
-cell eps 0.35 mag    4: cellMMCD KL 201.932 [214.630] flagged 0.048 rec 0.32 trimmed 0.14 errors 0 | kpair KL 120.169 | MLE KL   238.63
-cell eps 0.40 mag    4: cellMMCD KL 243.432 [278.672] flagged 0.015 rec 0.21 trimmed 0.12 errors 0 | kpair KL 190.818 | MLE KL   272.68
-cell eps 0.50 mag    4: cellMMCD KL 348.898 [374.353] flagged 0.000 rec 0.00 trimmed 0.00 errors 0 | kpair KL 431.499 | MLE KL   342.95
-cell eps 0.10 mag   10: cellMMCD KL   0.207 [  0.266] flagged 0.106 rec 1.00 trimmed 0.00 errors 0 | kpair KL   1.797 | MLE KL   453.57
-cell eps 0.20 mag   10: cellMMCD KL   0.278 [  0.428] flagged 0.202 rec 1.00 trimmed 0.00 errors 0 | kpair KL   4.227 | MLE KL   924.81
-cell eps 0.25 mag   10: cellMMCD KL   0.319 [  0.385] flagged 0.251 rec 1.00 trimmed 0.00 errors 0 | kpair KL   6.665 | MLE KL  1137.52
-cell eps 0.30 mag   10: cellMMCD KL   0.285 [  0.373] flagged 0.296 rec 1.00 trimmed 0.01 errors 0 | kpair KL  25.816 | MLE KL  1434.94
-cell eps 0.35 mag   10: cellMMCD KL   0.320 [  0.811] flagged 0.345 rec 1.00 trimmed 0.05 errors 0 | kpair KL 133.179 | MLE KL  1639.80
-cell eps 0.40 mag   10: cellMMCD KL  22.664 [455.717] flagged 0.361 rec 0.98 trimmed 0.14 errors 0 | kpair KL 190.735 | MLE KL  1885.01
-cell eps 0.50 mag   10: cellMMCD KL 1649.885 [2041.218] flagged 0.188 rec 0.38 trimmed 0.00 errors 0 | kpair KL 3095.155 | MLE KL  2354.77
-cell eps 0.10 mag 1000: cellMMCD KL   0.219 [  0.262] flagged 0.100 rec 1.00 trimmed 0.00 errors 0 | kpair KL   1.888 | MLE KL 4834576.59
-cell eps 0.20 mag 1000: cellMMCD KL   0.258 [  0.343] flagged 0.200 rec 1.00 trimmed 0.00 errors 0 | kpair KL   3.945 | MLE KL 9635946.78
-cell eps 0.25 mag 1000: cellMMCD KL   0.331 [  0.449] flagged 0.253 rec 1.00 trimmed 0.01 errors 0 | kpair KL   7.975 | MLE KL 12480030.48
-cell eps 0.30 mag 1000: cellMMCD KL   0.342 [  0.452] flagged 0.290 rec 1.00 trimmed 0.01 errors 0 | kpair KL  43.308 | MLE KL 14232002.11
-cell eps 0.35 mag 1000: cellMMCD KL   0.511 [  0.823] flagged 0.335 rec 1.00 trimmed 0.06 errors 0 | kpair KL 127.789 | MLE KL 17098434.49
-cell eps 0.40 mag 1000: cellMMCD KL   0.578 [  0.712] flagged 0.372 rec 1.00 trimmed 0.13 errors 0 | kpair KL 160.852 | MLE KL 19295404.79
-cell eps 0.50 mag 1000: cellMMCD KL 20633728.585 [23658623.986] flagged 0.196 rec 0.54 trimmed 0.25 errors 0 | kpair KL 55633779.823 | MLE KL 24738034.93
-case eps 0.10 mag    5: cellMMCD KL   0.214 [  0.266] flagged 0.003 rec 1.00 trimmed 0.10 errors 0 | kpair KL   1.322 | MLE KL     1.91
-case eps 0.20 mag    5: cellMMCD KL   0.249 [  0.371] flagged 0.003 rec 1.00 trimmed 0.20 errors 0 | kpair KL   3.058 | MLE KL     4.05
-case eps 0.25 mag    5: cellMMCD KL   0.386 [  1.540] flagged 0.007 rec 1.00 trimmed 0.25 errors 0 | kpair KL   5.295 | MLE KL     4.92
-case eps 0.30 mag    5: cellMMCD KL   3.410 [  4.502] flagged 0.044 rec 0.43 trimmed 0.10 errors 0 | kpair KL   7.126 | MLE KL     5.96
-case eps 0.35 mag    5: cellMMCD KL   5.180 [  6.317] flagged 0.036 rec 0.11 trimmed 0.02 errors 0 | kpair KL  12.670 | MLE KL     6.72
-case eps 0.45 mag    5: cellMMCD KL   6.260 [  8.017] flagged 0.097 rec 0.36 trimmed 0.16 errors 0 | kpair KL  31.531 | MLE KL     8.83
+cell eps 0.10 mag    4: cellMMCD KL   0.212 [  0.340] flagged 0.101 rec 1.00 trimmed 0.00 errors 0 | kpair KL   1.735 | MLE KL    55.61
+cell eps 0.20 mag    4: cellMMCD KL   0.468 [  0.783] flagged 0.198 rec 0.96 trimmed 0.00 errors 0 | kpair KL   9.664 | MLE KL   127.58
+cell eps 0.25 mag    4: cellMMCD KL   5.426 [ 26.350] flagged 0.232 rec 0.87 trimmed 0.02 errors 0 | kpair KL  19.202 | MLE KL   171.69
+cell eps 0.30 mag    4: cellMMCD KL  76.432 [157.111] flagged 0.145 rec 0.52 trimmed 0.02 errors 0 | kpair KL  53.328 | MLE KL   194.66
+cell eps 0.35 mag    4: cellMMCD KL 205.005 [213.110] flagged 0.047 rec 0.30 trimmed 0.14 errors 0 | kpair KL 120.169 | MLE KL   238.63
+cell eps 0.40 mag    4: cellMMCD KL 240.423 [267.789] flagged 0.016 rec 0.21 trimmed 0.12 errors 0 | kpair KL 190.818 | MLE KL   272.68
+cell eps 0.50 mag    4: cellMMCD KL 346.338 [371.468] flagged 0.000 rec 0.00 trimmed 0.00 errors 0 | kpair KL 431.499 | MLE KL   342.95
+cell eps 0.10 mag   10: cellMMCD KL   0.225 [  0.260] flagged 0.105 rec 1.00 trimmed 0.00 errors 0 | kpair KL   1.797 | MLE KL   453.57
+cell eps 0.20 mag   10: cellMMCD KL   0.262 [  0.419] flagged 0.202 rec 1.00 trimmed 0.00 errors 0 | kpair KL   4.227 | MLE KL   924.81
+cell eps 0.25 mag   10: cellMMCD KL   0.294 [  0.412] flagged 0.252 rec 1.00 trimmed 0.00 errors 0 | kpair KL   6.665 | MLE KL  1137.52
+cell eps 0.30 mag   10: cellMMCD KL   0.258 [  0.300] flagged 0.296 rec 1.00 trimmed 0.01 errors 0 | kpair KL  25.816 | MLE KL  1434.94
+cell eps 0.35 mag   10: cellMMCD KL   0.274 [  0.386] flagged 0.345 rec 1.00 trimmed 0.05 errors 0 | kpair KL 133.179 | MLE KL  1639.80
+cell eps 0.40 mag   10: cellMMCD KL  15.749 [293.098] flagged 0.364 rec 0.98 trimmed 0.13 errors 0 | kpair KL 190.735 | MLE KL  1885.01
+cell eps 0.50 mag   10: cellMMCD KL 1557.781 [2047.565] flagged 0.196 rec 0.40 trimmed 0.00 errors 0 | kpair KL 3095.155 | MLE KL  2354.77
+cell eps 0.10 mag 1000: cellMMCD KL   0.172 [  0.271] flagged 0.100 rec 1.00 trimmed 0.00 errors 0 | kpair KL   1.888 | MLE KL 4834576.59
+cell eps 0.20 mag 1000: cellMMCD KL   0.228 [  0.416] flagged 0.200 rec 1.00 trimmed 0.00 errors 0 | kpair KL   3.945 | MLE KL 9635946.78
+cell eps 0.25 mag 1000: cellMMCD KL   0.284 [  0.412] flagged 0.253 rec 1.00 trimmed 0.01 errors 0 | kpair KL   7.975 | MLE KL 12480030.48
+cell eps 0.30 mag 1000: cellMMCD KL   0.264 [  0.323] flagged 0.290 rec 1.00 trimmed 0.01 errors 0 | kpair KL  43.308 | MLE KL 14232002.11
+cell eps 0.35 mag 1000: cellMMCD KL   0.380 [  0.639] flagged 0.335 rec 1.00 trimmed 0.06 errors 0 | kpair KL 127.789 | MLE KL 17098434.49
+cell eps 0.40 mag 1000: cellMMCD KL   0.341 [122501.157] flagged 0.372 rec 1.00 trimmed 0.13 errors 0 | kpair KL 160.852 | MLE KL 19295404.79
+cell eps 0.50 mag 1000: cellMMCD KL 18500384.975 [21053974.591] flagged 0.209 rec 0.57 trimmed 0.25 errors 0 | kpair KL 55633779.823 | MLE KL 24738034.93
+case eps 0.10 mag    5: cellMMCD KL   0.181 [  0.286] flagged 0.004 rec 1.00 trimmed 0.10 errors 0 | kpair KL   1.322 | MLE KL     1.91
+case eps 0.20 mag    5: cellMMCD KL   0.225 [  0.364] flagged 0.002 rec 1.00 trimmed 0.20 errors 0 | kpair KL   3.058 | MLE KL     4.05
+case eps 0.25 mag    5: cellMMCD KL   0.306 [  1.571] flagged 0.008 rec 1.00 trimmed 0.25 errors 0 | kpair KL   5.295 | MLE KL     4.92
+case eps 0.30 mag    5: cellMMCD KL   3.420 [  3.922] flagged 0.048 rec 0.41 trimmed 0.10 errors 0 | kpair KL   7.126 | MLE KL     5.96
+case eps 0.35 mag    5: cellMMCD KL   4.800 [  5.513] flagged 0.034 rec 0.06 trimmed 0.01 errors 0 | kpair KL  12.670 | MLE KL     6.72
+case eps 0.45 mag    5: cellMMCD KL   6.190 [  8.830] flagged 0.090 rec 0.25 trimmed 0.11 errors 0 | kpair KL  31.531 | MLE KL     8.83

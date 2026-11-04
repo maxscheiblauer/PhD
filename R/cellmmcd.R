@@ -208,7 +208,10 @@ cm_eps_robust <- function(W, v, alpha = 0.75) {
 # is the second moment of a N(0,1) residual beyond its cutoff c, i.e. flagged cells are treated as
 # censored (known to be in the tail) rather than missing; in the 1-D proxy this makes the fixed point
 # Fisher-consistent without the t1 factor (cm_proxy_fixpt(tau = ...)).
-cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
+# loc = TRUE (block 5): also the EM step for the location, dM = mean over kept matrices of the conditional means
+# (the complete-data M-step; one GEM step on (M, Sigma), monotone in F); the Sigma update then uses Xh - dM.
+# Returns dM (zero matrix if loc = FALSE); the driver shifts M and Xc by it.
+cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1, loc = FALSE) {
   p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
   if (is.null(v)) v <- rep(TRUE, n); nv <- sum(v); keep <- which(v)
   Or <- solve(Sr); Oc <- solve(Sc)
@@ -225,6 +228,8 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
       info[[i]] <- list(C = tau * C, K = K, L = L, Ek = Ek, El = El)
     }
   }
+  dM <- if (loc) apply(Xh[, , keep, drop = FALSE], c(1, 2), mean) else matrix(0, p, q)
+  if (loc) Xh <- sweep(Xh, c(1, 2), dM)
   Sr_new <- matrix(0, p, p)
   for (i in keep) {
     Sr_new <- Sr_new + Xh[, , i] %*% Oc %*% t(Xh[, , i])
@@ -236,7 +241,7 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
     Sc_new <- Sc_new + t(Xh[, , i]) %*% Or_new %*% Xh[, , i]
     f <- info[[i]]; if (!is.null(f)) Sc_new <- Sc_new + t(f$El) %*% (f$C * Or_new[f$K, f$K]) %*% f$El
   }
-  list(Sr = Sr_new, Sc = Sc_new / (nv * p))
+  list(Sr = Sr_new, Sc = Sc_new / (nv * p), dM = dM)
 }
 
 ## ---- 5. Driver ---------------------------------------------------------------------
@@ -265,6 +270,8 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 # cells, eps_bar = current overall flag rate among the kept matrices (at least 1 - quant). NULL = off (max_flag only).
 # eps_robust (block 5): eps_bar from the alpha_obs fraction of kept matrices with the fewest flags, binomial-corrected
 # (cm_eps_robust, 3c), instead of the plain mean, which kept casewise outliers inflate. FALSE = block-4 rule.
+# loc (block 5): TRUE = joint estimation of M by the EM step on the kept cells of the kept matrices (cm_pstep dM);
+# (default since block 5, cm_step14: M error halved, KL never worse); FALSE = the cellwise median plug-in. The reweighting step keeps M fixed.
 # shadow_it (block 4): during the first shadow_it iterations the cell step also re-decides the cells of the
 # trimmed observations (cm_wstep shadow), so that the observation step can re-admit a matrix whose cellwise
 # outliers are flagged by then. Those cells change F only through the trimmed charge mu_i(W_i), so F need
@@ -273,7 +280,7 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1) {
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
                      reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, shadow_it = 10, flag_quant = 0.999,
-                     eps_robust = TRUE, trace = FALSE) {
+                     eps_robust = TRUE, loc = TRUE, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -303,7 +310,8 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
     W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v, shadow = trim_obs && it <= shadow_it)
     if (safeguard) { sg <- cm_fullcol(W, Wfix, v); W <- sg$W; unflagged <- unflagged + sg$unflagged }
     f1 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
-    ps <- cm_pstep(Xc, Sr, Sc, W, v, tau); Sr <- ps$Sr; Sc <- ps$Sc
+    ps <- cm_pstep(Xc, Sr, Sc, W, v, tau, loc); Sr <- ps$Sr; Sc <- ps$Sc
+    if (loc) { M <- M + ps$dM; Xc <- sweep(Xc, c(1, 2), ps$dM) }
     f2 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
     obj <- c(obj, f1, f2)
     if (trace) cat(sprintf("it %d: F = %.4f (cells) %.4f (params), flagged %.3f, trimmed %d\n", it, f1, f2, mean(!W[, , v]), n - nv))
@@ -315,7 +323,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   fit <- list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, Wfix = Wfix, v = v, obj = obj, iter = it,
               flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
               start = st, converged = it < maxit, tau = tau, unflagged = unflagged, shadow_it = shadow_it,
-              eps_bar = eps_bar, count_max = count_max, t_obs = t_obs)
+              eps_bar = eps_bar, count_max = count_max, t_obs = t_obs, loc = loc)
   if (reweight) cm_reweight(fit, X, quant_rw = quant_rw, maxit = maxit, tol = tol) else fit
 }
 

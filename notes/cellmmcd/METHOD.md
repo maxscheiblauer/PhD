@@ -30,7 +30,7 @@ Start: `kpair` (§6). Then repeat until $F$ stops changing:
 1. **Cell step.** For every position $(k,l)$ in turn, with $T_i = \Omega^r(X_i - M)\Omega^c$ and $S = M_i\cup\{c\}$:
    $\sigma^2_{ic} = (\Omega_{SS}^{-1})_{cc}$, $r_{ic} = (\Omega_{SS}^{-1}T_{i,S})_c/\sigma_{ic}$, $\Delta_{ic} = \log(2\pi\sigma_{ic}^2) + r_{ic}^2$.
    $\Delta_{ic} - \lambda_{kl}$ is exactly $F(w_{ikl}=1) - F(w_{ikl}=0)$ (tested). Flag the observations with the largest positive values, at most $n-h$ of them. Since $F$ is separable over $i$ for fixed parameters, this is the exact minimiser over the block $w_{\cdot kl}$.
-2. **Parameter step.** One flip-flop sweep of the score fixed point
+2. **Parameter step.** (Block 5: first $M \leftarrow M + \frac1{n_v}\sum_{i\ \mathrm{kept}} \hat X_i$ with $\hat X_i$ the centred conditional means below, the complete-data M-step for the location; then) one flip-flop sweep of the score fixed point
    $\Sigma^r \leftarrow \frac1{nq}\sum_i \mathbb E[X_i\Omega^cX_i'\mid x_{iO_i}]$, $\Sigma^c \leftarrow \frac1{np}\sum_i\mathbb E[X_i'\Omega^rX_i\mid x_{iO_i}]$,
    computed from $\hat X_i$ (conditional mean, $\hat x_{iS} = x_{iS} - \Omega_{SS}^{-1}T_{iS}$ on $S = M_i$) and $C_i = \Omega_{M_iM_i}^{-1}$:
    $\mathbb E[X\Omega^cX'\mid\cdot] = \hat X\Omega^c\hat X' + E_k'(C\circ\Omega^c_{LL})E_k$ with $E_k$ the $m_i\times p$ row-indicator matrix. By Fisher's identity this is the fixed point of the exact observed-data score; it is also one GEM step, so $F$ does not increase (tested). Without flags it is the flip-flop step (tested).
@@ -87,6 +87,8 @@ $s_{kl} = \operatorname{MAD}_i(X_{ikl} - M_{kl})$; $\log s_{kl}^2 = a_k + b_l$ b
 | full-column constraint prevents degenerate descents | refuted numerically as a post-hoc repair (`cm_step7`) |
 | influence functions of the raw and the reweighted estimator in the 1-D proxy (§7a) | proven in the proxy; checked numerically to $10^{-4}$ (test 19) |
 | shadow cell step: convergence after at most `shadow_it` non-monotone iterations | proven (reduces to §4); monotone throughout in every run checked |
+| location $M$ by the EM step on the kept cells (block 5): GEM step on $(M,\Sigma)$, $F$ monotone | proven (EM argument of §4); checked (test 23) |
+| hard quota with the MCD consistency factor $\kappa(\alpha_{obs}, pq)$: clean scale ratio 1.01 | checked numerically (test 22); over-corrects under genuine casewise contamination like the raw MCD |
 | breakdown: cellwise at $1-\alpha$ per position for cells the marginal rule does not see, higher (35–40 % here) for gross cells; casewise at $1-\alpha_{obs}$ | checked numerically (`cm_step13_breakdown.log`, block 5); conjectured in general |
 | monotone formulation of the shadow phase | refuted on paper (block 5): a constant trimmed charge $\equiv$ charging flagged cells |
 
@@ -102,7 +104,7 @@ At quant .99 / .999: $\mathrm{IF}_{raw}(x) = [1(x^2\le c)(x^2 - 0.925) + 0.030\,
 2b. ~~Interplay of the two trimming steps~~: solved by the shadow cell step (§4e). ~~A monotone formulation of the shadow phase~~: closed negatively in block 5 (JOURNAL): any monotone charge for trimmed matrices either charges flagged cells (block-2 dead end) or disables the observation step; the shadow phase is a finite non-monotone preprocessing of $(v,W)$, the estimator the limit of the monotone descent from it.
 6. Casewise outliers that look like cellwise-contaminated clean matrices after their worst cells are flagged (structural outliers under $\ge 5$ % cellwise contamination, §4e) are not identifiable in the cellwise paradigm; the hard quota is the fallback.
 7. Breakdown: proven only numerically (§7); the per-position cellwise breakdown point $1-\alpha$ is low for a cellwise method (cellMCD has the same quota); the forced marginal flags raise it for gross cells.
-3. Joint estimation of $M$ (the median plug-in is used now).
+3. ~~Joint estimation of $M$~~: done in block 5 (EM step for $M$ in the parameter step, default `loc = TRUE`; JOURNAL block 5, `cm_step14_loc.log`: squared error of $M$ halved, KL never worse; the median plug-in breaks at 20 % shifted matrices).
 4. ~~Rcpp for the cell step~~ done (block 4, §5); the parameter step and the objective are next if $pq > 20$ matters.
 5. Cells that are bad *and* near their conditional mean cannot be detected (as for every cellwise method).
 
@@ -111,12 +113,12 @@ Median KL, n = 100, 20 reps, cells shifted by 6 sd with random sign:
 
 | ε | cellMMCD (default) | cellMMCD raw .99 | cellMCD on vec + Kronecker | kpair | RJ | MMCD | MLE |
 |---|---|---|---|---|---|---|---|
-| 0 (3×4 / 5×5) | 0.087 / 0.198 | 0.125 / 0.25 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
-| .05 | 0.083 / 0.184 | 0.10 / 0.25 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
-| .10 | 0.094 / 0.205 | 0.11 / 0.26 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
-| .20 | 0.139 / 0.320 | 0.18 / 0.39 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
+| 0 (3×4 / 5×5) | 1 / 0.084 | 0.125 / 0.25 | 0.28 / 0.65 | 0.45 / 1.04 | 0.17 / 0.32 | 0.09 / 0.18 | 0.07 / 0.16 |
+| .05 | 0.195 / 0.089 | 0.10 / 0.25 | 0.26 / 0.63 | 0.40 / 1.20 | 1.7 / 8.5 | 14 / 47 | 27 / 63 |
+| .10 | 0.195 / 0.092 | 0.11 / 0.26 | 0.26 / 0.59 | 0.78 / 1.55 | 14 / 89 | 50 / 119 | 61 / 144 |
+| .20 | 0.183 / 0.130 | 0.18 / 0.39 | 0.32 / 1.14 | 2.3 / 4.7 | 113 / 289 | 123 / 290 | 134 / 308 |
 
-(cellMMCD column rerun in block 4 with the shadow step, before the count rule, which does not act in these settings; block-3 numbers in `cm_step1_block3.log`: 0.095 / 0.205, 0.089 / 0.187, 0.096 / 0.209, 0.145 / 0.353.)
+(cellMMCD column rerun in block 5 with the final default (robust rate, joint location); block-4 numbers in `cm_step1_block4.log`: 0.087 / 0.198, 0.083 / 0.184, 0.094 / 0.205, 0.139 / 0.320; block 3's in `cm_step1_block3.log`.)
 
 Recall of bad cells 0.97–1.00, false flags 0.1–0.6 % (default) / 0.4–1.7 % (raw), clean-data scale ratio 0.99–1.00. Run time 0.1–0.7 s at n = 100 (pure R); 10 s at 10×10, n = 200.
 
@@ -124,14 +126,14 @@ Recall of bad cells 0.97–1.00, false flags 0.1–0.6 % (default) / 0.4–1.7 %
 
 | contamination | cells only | cellMMCD (default: observation step, majority rule) | hard quota | MMCD | MLE |
 |---|---|---|---|---|---|
-| none | 0.20 | 0.20 | 0.38 | 0.18 | 0.16 |
-| 5 % cells | 0.17 | 0.17 | 0.37 | 45 | 63 |
-| shift 10 % / 20 % | 0.24 / 1.95 | 0.17 / 0.22 | 0.24 / 0.22 | 0.18 / 0.21 | 2.0 / 4.0 |
-| scale 10 % / 20 % | 0.30 / 0.95 | 0.19 / 0.22 | 0.30 / 0.26 | 0.20 / 0.27 | 2.9 / 9.0 |
-| struct 10 % / 20 % | 0.36 / 1.11 | 0.18 / 0.28 (block 4: 0.32) | 0.32 / 0.28 | 0.18 / 0.23 | 4.3 / 10.6 |
-| shift 10 % + 5 % cells | 0.32 | 0.22 | 0.29 | 51 | 66 |
-| struct 20 % + 5 % cells (block 5; 1.0 in `cm_step12` with other seeds) | – | 1.62 | 0.42 | 48 | – |
+| none | 0.20 | 0.19 | 0.28 | 0.18 | 0.16 |
+| 5 % cells | 0.17 | 0.18 | 0.29 | 45 | 63 |
+| shift 10 % / 20 % | 0.24 / 1.95 | 0.16 / 0.17 | 0.23 / 0.22 | 0.18 / 0.21 | 2.0 / 4.0 |
+| scale 10 % / 20 % | 0.30 / 0.95 | 0.19 / 0.22 | 0.25 / 0.31 | 0.20 / 0.27 | 2.9 / 9.0 |
+| struct 10 % / 20 % | 0.36 / 1.11 | 0.20 / 0.23 (block 4: 0.18 / 0.32) | 0.25 / 0.26 | 0.18 / 0.23 | 4.3 / 10.6 |
+| shift 10 % + 5 % cells | 0.32 | 0.22 | 0.27 | 51 | 66 |
+| struct 20 % + 5 % cells (block 5; 1.0–1.6 with the median plug-in) | – | 0.79 | 0.32 | 48 | – |
 
-(default column rerun in block 5 with the robust flag rate, `cm_step4_mixed.log`; block 4's run is `cm_step4_mixed_block4.log`; the other columns are block 3's, `cm_step4_mixed_block3.log`, except the new row.)
+(default and hard-quota columns rerun in block 5 with the robust flag rate, the joint location and the hard-quota consistency factor, `cm_step4_mixed.log`; block 4's run is `cm_step4_mixed_block4.log`, the block-5 run with the median plug-in `cm_step4_mixed_b5_locmedian.log`; the cells-only and MMCD/MLE columns are block 3's, `cm_step4_mixed_block3.log`, except the new row.)
 
 The default trims every shifted or scaled matrix and 85–95 % of the structural ones, at 0–3 % of the clean ones; the hard quota always trims 25 % and is not yet scale-corrected. The clean-data gap to MMCD is now 0.22 vs 0.18 (block 2: 0.31). The clean-data gap to MMCD and the MLE is the efficiency question of §8.

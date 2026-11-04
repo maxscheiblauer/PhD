@@ -1,0 +1,6 @@
+p = q = 5, n = 100, 10 reps, M = 1. Median KL / squared error of M / trimmed / false flags; MLE mean's M error for reference.
+clean   : median KL 0.163 Merr 0.426 tr 0.00 fp 0.010 | joint KL 0.166 Merr 0.268 tr 0.00 fp 0.010 | sample mean Merr 0.263
+cells6  : median KL 0.169 Merr 0.443 tr 0.00 fp 0.006 | joint KL 0.146 Merr 0.273 tr 0.00 fp 0.007 | sample mean Merr 0.585
+cells4  : median KL 0.162 Merr 0.497 tr 0.00 fp 0.005 | joint KL 0.159 Merr 0.276 tr 0.00 fp 0.006 | sample mean Merr 0.560
+shiftmat: median KL 0.208 Merr 3.038 tr 0.20 fp 0.004 | joint KL 0.194 Merr 0.321 tr 0.20 fp 0.004 | sample mean Merr 25.718
+mixed   : median KL 0.198 Merr 0.829 tr 0.10 fp 0.004 | joint KL 0.178 Merr 0.315 tr 0.10 fp 0.004 | sample mean Merr 6.768
