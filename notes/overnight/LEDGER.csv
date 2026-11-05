@@ -16,3 +16,4 @@ block,session_id,start_utc,end_utc,meter_usd,summary
 10,session_01Fi3wVf4AFqBEhFFyDjtwqz,2026-11-04T15:52:40Z,,,launched FINAL cap 6 (spent before launch ~83.00; block8 final get_session 6.90; available 9.16)
 10,session_01Fi3wVf4AFqBEhFFyDjtwqz,2026-11-04T15:52:54Z,2026-11-04T16:13:08Z,2.44,FINAL: MORNING_REPORT.md written; tests rerun 27/27+31/31 on fresh container; no code changes
 S,session_01Fi3wVfP1pWdGuwaTCaYqCU,2026-11-04T12:53:21Z,2026-11-04T16:14:00Z,2.51,SUPERVISOR shutdown: watchdog deleted; MORNING_REPORT.md present; total spent ~84.81 of 100 (planning 8 + workers 74.30 final get_session, block10 meter 2.44 + supervisor 2.51)
+11,session_01Fi3wVb8YpPmehxM4suTyC6,2026-11-05T07:34:27Z,,,launched BONUS cap 9 / 25 min on owner request (remaining ~13 USD); target: large-p,q existence limit
