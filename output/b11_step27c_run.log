@@ -1,0 +1,4 @@
+step 27c (block 11): count rule at eps = .25, 20x20, n = 100
+  seed 2716: default: KL 9.117 trimmed 0.07 eps_bar 0.242 count_max 124 | noflagquant: KL 8.932 trimmed 0.08 eps_bar 0.243 count_max Inf | notrim: KL 8.215 trimmed 0.00 eps_bar NA count_max Inf
+  seed 2717: default: KL 5.481 trimmed 0.16 eps_bar 0.246 count_max 126 | noflagquant: KL 6.161 trimmed 0.14 eps_bar 0.244 count_max Inf | notrim: KL 5.328 trimmed 0.00 eps_bar NA count_max Inf
+  seed 2718: default: KL 9.125 trimmed 0.16 eps_bar 0.245 count_max 125 | noflagquant: KL 7.818 trimmed 0.20 eps_bar 0.244 count_max Inf | notrim: KL 9.041 trimmed 0.00 eps_bar NA count_max Inf

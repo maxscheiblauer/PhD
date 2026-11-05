@@ -1,0 +1,7 @@
+step 27b (block 11): oracle observed-cell MLE with true flags vs default cellMMCD at 20x20, n = 100
+  eps 0.20 seed 2713: oracle KL 3.558 (true pattern: c_full 28, d_full 23); cellMMCD KL 3.913, flag precision 0.973 recall 0.999, trimmed 0.00, kept-pattern c_full 22
+  eps 0.20 seed 2714: oracle KL 3.309 (true pattern: c_full 29, d_full 26); cellMMCD KL 3.760, flag precision 0.980 recall 0.999, trimmed 0.00, kept-pattern c_full 25
+  eps 0.20 seed 2715: oracle KL 3.520 (true pattern: c_full 22, d_full 12); cellMMCD KL 3.938, flag precision 0.975 recall 0.999, trimmed 0.01, kept-pattern c_full 19
+  eps 0.25 seed 2716: oracle KL 3.996 (true pattern: c_full 4, d_full 6); cellMMCD KL 9.117, flag precision 0.984 recall 0.988, trimmed 0.07, kept-pattern c_full 8
+  eps 0.25 seed 2717: oracle KL 3.632 (true pattern: c_full 9, d_full 8); cellMMCD KL 5.481, flag precision 0.979 recall 0.985, trimmed 0.16, kept-pattern c_full 9
+  eps 0.25 seed 2718: oracle KL 3.831 (true pattern: c_full 9, d_full 6); cellMMCD KL 9.125, flag precision 0.977 recall 0.983, trimmed 0.16, kept-pattern c_full 4

@@ -67,3 +67,20 @@ Closed blocks 0–9: **$86.49** by the in-container meter (safety factor 1.15). 
 
 ## Files to read first
 `notes/cellmmcd/PAPER.md` (whole), `notes/overnight/STATE.md` (next steps), `notes/cellmmcd/JOURNAL.md` block 9, `output/cm_step26_strata.log` (e), `output/cm_step20_default.log`.
+
+
+## Addendum (block 11, 2026-11-05, bonus block on the owner's request)
+
+**Question worked on:** STATE next-step 1, the large-$p,q$ existence limit (kept pattern in Prop. A's proven-unbounded regime once $nq(1-\varepsilon)^p<p$).
+
+**What was found (all checked numerically, 20×20, $n = 100$, 6 sd random cells, 3 reps; `output/cm_step27_limit.log`, `cm_step27b_oracle.log`, `cm_step27c_countrule.log`):**
+- cellMMCD median KL 2.7 / 2.9 / 3.0 / 3.4 / 3.9 / **9.1** at $\varepsilon$ = 0 / .05 / .10 / .15 / .20 / .25; the clean-data MLE is ≈ 2.1 at every $\varepsilon$; MMCD is 2.4 at $\varepsilon = 0$ and ≥ 1100 from 5 % on. Degradation is gradual (×1.8 the clean MLE at 20 %) and severe only at 25 %.
+- The fitted factors never degenerate (condition numbers 9–10 against a true 8.6) even though Prop. A fires in 2 of 3 reps at 20 % and in all at 25 %. **The estimator returns a bounded, well-conditioned local minimiser inside the regime where the objective is provably unbounded.** The threshold $nq(1-\varepsilon)^p = p$ marks where the existence proof stops, not where the estimate breaks.
+- At 25 % the oracle observed-cell MLE with the true flags gives KL 3.6–4.0, and switching observation trimming off barely changes cellMMCD (8.2 / 5.3 / 9.0 vs 9.1 / 5.5 / 9.1). The ×2.4 excess is the cell step missing 1.2–1.7 % of the 6 sd cells near the quota $1-\alpha = 0.25$. That is the real large-$p,q$ limit.
+- **Remedy (i), a trace-proportional ridge on the shape factors, is rejected:** +28 % KL at the Gaussian for $\rho = 0.05$ and ×9 for $\rho = 0.2$ (the true column factor has condition number 28.5), and no gain at 25 %. It stays in the code as an option (`ridge = 0` default, test 28) and is not part of the method.
+
+**Code:** `cm_ridge`, `ridge` argument (default 0, default estimator unchanged), test 28; three experiment scripts. Tests 28/28 + 31/31.
+
+**Recommended next steps:** (1) the cell-step recall at 25 % (where are the missed cells; `quant_rw` 0.99; a second reweighting pass); (2) an existence statement for the algorithm's output (local minimiser reached from `kpair`), now well supported numerically.
+
+**Spend:** block 11 ≈ $4.56 (meter at closing in `LEDGER.csv`); relay total was ≈ $84.8 before this block.

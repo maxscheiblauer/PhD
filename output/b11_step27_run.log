@@ -1,0 +1,31 @@
+cellMMCD step 27 (block 11): the large-p,q operating limit at 20x20, n = 100 (seed 27, 3 reps, 6 sd cells)
+true condition numbers kappa(Sr) 8.6 kappa(Sc) 28.5
+
+(a)+(b) median over reps; exp_full = n q (1-eps)^p (Prop. A unbounded regime once < p = 20); r0 = default, r.05 / r.2 = ridge rho
+  eps exp_full |  KL_mle KL_mmcd |   KL_r0 KL_r.05  KL_r.2 | cf_r0 cf.05  cf.2 |  A_r0  A.05   A.2 |  kr_r0  kr.05   kr.2 | fl_r0 fl.05  fl.2
+ 0.00   2000.0 |   2.039   2.368 |   2.737   3.506  23.462 |  1291  1487  1311 |     0     0     0 |      9      8      5 | 0.008 0.006 0.005
+ 0.05    717.0 |   2.126 1113.273 |   2.926   4.437  29.638 |   484   587   633 |     0     0     0 |     10      8      5 | 0.056 0.053 0.053
+ 0.10    243.2 |   2.019 2577.798 |   3.031   4.406  33.521 |   184   209   236 |     0     0     0 |     10      8      5 | 0.104 0.102 0.101
+ 0.15     77.5 |   2.091 4159.302 |   3.443   5.731  39.298 |    63    73    81 |     0     0     0 |     10      8      5 | 0.153 0.151 0.151
+ 0.20     23.1 |   2.199 5767.305 |   3.913   6.607  45.406 |    22    25    27 |     2     1     1 |     10      7      5 | 0.204 0.203 0.201
+ 0.25      6.3 |   2.020 7284.956 |   9.117  16.631  67.551 |     8     7     8 |     3     3     3 |      9      7      4 | 0.253 0.251 0.249
+
+per-rep KL (r0 / r.05 / r.2), fully kept cols/rows (r0), trimmed fraction (r0), seconds (r0):
+  eps 0.00 rep 1: KL 2.376 / 3.505 / 23.203; cf 1291 df 1316; trimmed 0.02; 1 s
+  eps 0.00 rep 2: KL 2.737 / 3.680 / 23.462; cf 1292 df 1299; trimmed 0.01; 1 s
+  eps 0.00 rep 3: KL 2.870 / 3.506 / 23.892; cf 1152 df 1154; trimmed 0.01; 2 s
+  eps 0.05 rep 1: KL 3.200 / 4.465 / 29.838; cf 484 df 487; trimmed 0.00; 3 s
+  eps 0.05 rep 2: KL 2.926 / 4.437 / 29.638; cf 455 df 426; trimmed 0.00; 3 s
+  eps 0.05 rep 3: KL 2.567 / 4.087 / 29.202; cf 489 df 492; trimmed 0.00; 2 s
+  eps 0.10 rep 1: KL 3.031 / 4.240 / 33.521; cf 165 df 184; trimmed 0.00; 5 s
+  eps 0.10 rep 2: KL 3.164 / 4.406 / 34.186; cf 184 df 175; trimmed 0.00; 4 s
+  eps 0.10 rep 3: KL 2.794 / 4.516 / 33.450; cf 187 df 171; trimmed 0.01; 5 s
+  eps 0.15 rep 1: KL 3.443 / 5.731 / 39.298; cf 77 df 66; trimmed 0.00; 8 s
+  eps 0.15 rep 2: KL 2.759 / 5.243 / 39.220; cf 58 df 44; trimmed 0.00; 10 s
+  eps 0.15 rep 3: KL 3.823 / 5.805 / 40.069; cf 63 df 62; trimmed 0.00; 10 s
+  eps 0.20 rep 1: KL 3.913 / 7.136 / 46.534; cf 22 df 19; trimmed 0.00; 17 s
+  eps 0.20 rep 2: KL 3.760 / 6.276 / 45.406; cf 25 df 20; trimmed 0.00; 15 s
+  eps 0.20 rep 3: KL 3.938 / 6.607 / 44.657; cf 19 df 11; trimmed 0.01; 17 s
+  eps 0.25 rep 1: KL 9.117 / 17.594 / 73.158; cf 8 df 7; trimmed 0.07; 27 s
+  eps 0.25 rep 2: KL 5.481 / 11.506 / 59.187; cf 9 df 7; trimmed 0.16; 27 s
+  eps 0.25 rep 3: KL 9.125 / 16.631 / 67.551; cf 4 df 5; trimmed 0.16; 28 s
