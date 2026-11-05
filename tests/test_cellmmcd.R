@@ -238,5 +238,14 @@ W25 <- array(FALSE, c(3, 3, 3)); W25[2:3, 1, 1] <- TRUE; W25[1, 2:3, 1] <- TRUE;
 cs25 <- cm_check_strata(W25); csok <- cm_check_strata(array(TRUE, c(3, 3, 2)))
 res <- c(res, t27 = ok27 && abs(sl27 - 4) < 0.05 && cs25$viol_A == 0 && cs25$viol_cross == 1 && csok$viol == 0)
 
+# ---- 28 (block 11): ridge parameter step. cm_ridge keeps the trace, bounds the eigenvalues below by rho tr S / p and is
+# the identity at rho = 0; cellmmcd(ridge = 0) reproduces the default exactly; a small ridge on clean 3x4 data stays within
+# a small KL of the default fit (algorithmic regularisation, objective unchanged).
+set.seed(28); S28 <- crossprod(matrix(rnorm(25), 5)); R28 <- cm_ridge(S28, 0.1); e28 <- eigen(R28, symmetric = TRUE, only.values = TRUE)$values
+d28 <- true_sigma(3, 4, "full"); X28 <- rmatnorm(60, Sr = d28$Sr, Sc = d28$Sc)
+f28a <- cellmmcd(X28); f28b <- cellmmcd(X28, ridge = 0); f28c <- cellmmcd(X28, ridge = 0.05)
+res <- c(res, t28 = abs(sum(diag(R28)) - sum(diag(S28))) < 1e-10 && min(e28) >= 0.1 * mean(diag(S28)) - 1e-10 && identical(cm_ridge(S28, 0), S28) &&
+  identical(f28a$Sr, f28b$Sr) && identical(f28a$Sc, f28b$Sc) && isTRUE(f28c$ridge == 0.05) && skl(f28a, f28c) < 0.05)
+
 cat(sprintf("\n%d / %d tests passed\n", sum(res), length(res)))
 if (!all(res)) quit(status = 1)

@@ -211,7 +211,12 @@ cm_eps_robust <- function(W, v, alpha = 0.75) {
 # loc = TRUE (block 5): also the EM step for the location, dM = mean over kept matrices of the conditional means
 # (the complete-data M-step; one GEM step on (M, Sigma), monotone in F); the Sigma update then uses Xh - dM.
 # Returns dM (zero matrix if loc = FALSE); the driver shifts M and Xc by it.
-cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1, loc = FALSE) {
+# ridge (block 11): the step returns (1 - ridge) S + ridge (tr S / p) I for each factor, i.e. the maximiser of the
+# penalised step log det Sigma + tr Sigma^{-1} (S + c I), c = ridge / (1 - ridge) tr S / p (a penalty c tr Sigma^{-1}
+# with c tied to the current scale; scale-equivariant). Eigenvalues are then >= ridge tr S / p, so a factor cannot
+# degenerate in the unbounded regime of Prop. A (nq(1-eps)^p < p). The objective F itself is not modified.
+cm_ridge <- function(S, ridge) if (ridge > 0) (1 - ridge) * S + ridge * mean(diag(S)) * diag(nrow(S)) else S
+cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1, loc = FALSE, ridge = 0) {
   p <- dim(Xc)[1]; q <- dim(Xc)[2]; n <- dim(Xc)[3]
   if (is.null(v)) v <- rep(TRUE, n); nv <- sum(v); keep <- which(v)
   Or <- solve(Sr); Oc <- solve(Sc)
@@ -235,13 +240,13 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1, loc = FALSE) {
     Sr_new <- Sr_new + Xh[, , i] %*% Oc %*% t(Xh[, , i])
     f <- info[[i]]; if (!is.null(f)) Sr_new <- Sr_new + t(f$Ek) %*% (f$C * Oc[f$L, f$L]) %*% f$Ek
   }
-  Sr_new <- Sr_new / (nv * q); Or_new <- solve(Sr_new)
+  Sr_new <- cm_ridge(Sr_new / (nv * q), ridge); Or_new <- solve(Sr_new)
   Sc_new <- matrix(0, q, q)
   for (i in keep) {
     Sc_new <- Sc_new + t(Xh[, , i]) %*% Or_new %*% Xh[, , i]
     f <- info[[i]]; if (!is.null(f)) Sc_new <- Sc_new + t(f$El) %*% (f$C * Or_new[f$K, f$K]) %*% f$El
   }
-  list(Sr = Sr_new, Sc = Sc_new / (nv * p), dM = dM)
+  list(Sr = Sr_new, Sc = cm_ridge(Sc_new / (nv * p), ridge), dM = dM)
 }
 
 ## ---- 5. Driver ---------------------------------------------------------------------
@@ -280,7 +285,7 @@ cm_pstep <- function(Xc, Sr, Sc, W, v = NULL, tau = 1, loc = FALSE) {
 cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs = 0.99, max_flag = 0.5,
                      maxit = 100, tol = 1e-8, init = NULL, marg_cut = 3, calib = TRUE, tail = FALSE,
                      reweight = TRUE, quant_rw = 0.999, safeguard = FALSE, shadow_it = 10, flag_quant = 0.999,
-                     eps_robust = TRUE, loc = TRUE, quant_rw_obs = NULL, trace = FALSE) {
+                     eps_robust = TRUE, loc = TRUE, quant_rw_obs = NULL, ridge = 0, trace = FALSE) {
   p <- dim(X)[1]; q <- dim(X)[2]; n <- dim(X)[3]
   M <- apply(X, c(1, 2), median); Xc <- sweep(X, c(1, 2), M)
   st <- if (is.null(init)) kpair(X, M) else init
@@ -310,7 +315,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
     W <- cm_wstep(Xc, Sr, Sc, W, Wfix, lambda, h, v, shadow = trim_obs && it <= shadow_it)
     if (safeguard) { sg <- cm_fullcol(W, Wfix, v); W <- sg$W; unflagged <- unflagged + sg$unflagged }
     f1 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
-    ps <- cm_pstep(Xc, Sr, Sc, W, v, tau, loc); Sr <- ps$Sr; Sc <- ps$Sc
+    ps <- cm_pstep(Xc, Sr, Sc, W, v, tau, loc, ridge); Sr <- ps$Sr; Sc <- ps$Sc
     if (loc) { M <- M + ps$dM; Xc <- sweep(Xc, c(1, 2), ps$dM) }
     f2 <- cm_obj(Xc, Sr, Sc, W, lambda, v, mu)
     obj <- c(obj, f1, f2)
@@ -323,7 +328,7 @@ cellmmcd <- function(X, alpha = 0.75, quant = 0.99, alpha_obs = 0.75, quant_obs 
   fit <- list(Sr = sc$Sr, Sc = sc$Sc, M = M, W = W, Wfix = Wfix, v = v, obj = obj, iter = it,
               flagged = mean(!W[, , v]), trimmed = mean(!v), lambda = lambda, mu = mu, factor = fac,
               start = st, converged = it < maxit, tau = tau, unflagged = unflagged, shadow_it = shadow_it,
-              eps_bar = eps_bar, count_max = count_max, t_obs = t_obs, loc = loc)
+              eps_bar = eps_bar, count_max = count_max, t_obs = t_obs, loc = loc, ridge = ridge)
   # quant_rw_obs (block 6): NULL = automatic (the hard quota re-decides the observation weights in the
   # reweighting step at .99; the penalised threshold does not), FALSE = never, a number = that quantile.
   if (is.null(quant_rw_obs)) quant_rw_obs <- if (trim_obs && is.null(quant_obs)) 0.99 else FALSE
@@ -381,7 +386,7 @@ cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8, quant
   }
   Sr <- fit$Sr; Sc <- fit$Sc; zero <- matrix(0, p, q); prev <- Inf; obj <- numeric(0)
   for (it in 1:maxit) {
-    ps <- cm_pstep(Xc, Sr, Sc, W, v); Sr <- ps$Sr; Sc <- ps$Sc
+    ps <- cm_pstep(Xc, Sr, Sc, W, v, ridge = if (is.null(fit$ridge)) 0 else fit$ridge); Sr <- ps$Sr; Sc <- ps$Sc
     f2 <- cm_obj(Xc, Sr, Sc, W, zero, v, 0); obj <- c(obj, f2)
     if (abs(prev - f2) < tol * abs(f2)) break
     prev <- f2
@@ -390,7 +395,7 @@ cm_reweight <- function(fit, X, quant_rw = 0.999, maxit = 100, tol = 1e-8, quant
   sc <- scale_ident(Sr / (t_rw * t_obs), Sc, "det")
   list(Sr = sc$Sr, Sc = sc$Sc, M = fit$M, W = W, Wfix = fit$Wfix, v = v, obj = obj, iter = it,
        flagged = mean(!W[, , v]), trimmed = mean(!v), factor = t_rw * t_obs, converged = it < maxit,
-       raw = fit, quant_rw = quant_rw, lambda = fit$lambda, mu = fit$mu, start = fit$start, tau = fit$tau,
+       raw = fit, ridge = fit$ridge, quant_rw = quant_rw, lambda = fit$lambda, mu = fit$mu, start = fit$start, tau = fit$tau,
        unflagged = fit$unflagged, rw_obs = rw_obs, quant_rw_obs = quant_rw_obs, t_obs = t_obs)
 }
 
